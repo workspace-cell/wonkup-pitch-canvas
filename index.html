@@ -457,7 +457,7 @@
                                     <div class="relative inline-block group/info text-slate-400 hover:text-[#50a8f3] cursor-help transition-colors">
                                         <i class="fas fa-circle-info text-[11px]"></i>
                                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/info:block bg-slate-900 text-white text-[11px] rounded-lg p-3 shadow-xl z-50 w-64 text-left font-normal leading-normal pointer-events-none whitespace-normal normal-case border border-slate-700">
-                                            ¿Por qué ustedes son las personas correctas para llevar a cabo esta idea? Resalta los roles (líder de desarrollo, marketing, finanzas) and las fortalezas que los complementan.
+                                            ¿Por qué ustedes son las personas correctas para llevar a cabo esta idea? Resalta los roles (líder de desarrollo, marketing, finanzas) y las fortalezas que los complementan.
                                             <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
                                         </div>
                                     </div>
@@ -542,9 +542,6 @@
             </div>
         </div>
     </main>
-
-    <!-- Contenedor oculto en el DOM para la generación de reportes en PDF -->
-    <div id="report-pdf-wrapper" class="absolute -left-[9999px] top-0 no-print"></div>
 
     <!-- MODALES DE INTERFAZ (UI) -->
     
@@ -761,9 +758,15 @@
                 const presenceColRef = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
                 const sessionsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions');
 
-                // 1. Sincronizar el catálogo de salas
+                // 1. Sincronizar el catálogo de salas ordenados por el índice 'order' personalizado
                 onSnapshot(roomsColRef, (snapshot) => {
-                    state.rooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const fetchedRooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    state.rooms = fetchedRooms.sort((a, b) => {
+                        const orderA = a.order !== undefined ? a.order : 9999;
+                        const orderB = b.order !== undefined ? b.order : 9999;
+                        if (orderA !== orderB) return orderA - orderB;
+                        return (b.createdAt || 0) - (a.createdAt || 0);
+                    });
                     renderRooms();
                 }, (error) => {
                     console.error("Error al sincronizar salas:", error);
@@ -922,6 +925,23 @@
                 { id: 'room-beta', name: 'Equipo Beta (Ejemplo)', createdAt: Date.now() - 3600000, archived: false },
                 { id: 'room-archived-demo', name: 'Antiguo Proyecto Archivador', createdAt: Date.now() - 86400000, archived: true }
             ];
+
+            // Ordenación de salas offline
+            const savedOrderStr = localStorage.getItem('wonkup_rooms_order');
+            if (savedOrderStr) {
+                try {
+                    const savedOrder = JSON.parse(savedOrderStr);
+                    state.rooms.sort((a, b) => {
+                        const idxA = savedOrder.indexOf(a.id);
+                        const idxB = savedOrder.indexOf(b.id);
+                        const posA = idxA !== -1 ? idxA : 9999;
+                        const posB = idxB !== -1 ? idxB : 9999;
+                        return posA - posB;
+                    });
+                } catch (e) {
+                    console.error("Fallo al parsear orden de salas local:", e);
+                }
+            }
 
             // Notas preestablecidas
             state.notes = [
@@ -1154,54 +1174,61 @@
             tempDiv.style.position = 'fixed';
             tempDiv.style.left = '0';
             tempDiv.style.top = '0';
-            tempDiv.style.width = '1000px'; 
-            tempDiv.style.zIndex = '-9999';
+            tempDiv.style.width = '100%'; 
+            tempDiv.style.height = '100%';
+            tempDiv.style.zIndex = '99999';
             tempDiv.style.background = '#ffffff';
+            tempDiv.style.overflowY = 'auto';
             tempDiv.style.padding = '40px';
             tempDiv.className = 'font-sans';
             
             let tableRows = '';
             if (roomSessions.length === 0) {
-                tableRows = `<tr><td colspan="6" class="py-6 text-center text-slate-400 italic font-medium">No hay registros de asistencia aún para esta sala.</td></tr>`;
+                tableRows = `<tr><td colspan="6" style="padding: 24px 0; text-align: center; color: #94a3b8; font-style: italic; font-weight: 500;">No hay registros de asistencia aún para esta sala.</td></tr>`;
             } else {
                 roomSessions.forEach(s => {
                     const dateStr = new Date(s.loginTime).toLocaleDateString();
                     const loginTimeStr = new Date(s.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const exitTimeStr = s.exitTime ? new Date(s.exitTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "En sesión";
-                    const statusClass = s.status === 'activo' ? 'text-emerald-600 font-bold' : 'text-slate-500';
+                    const statusClass = s.status === 'activo' ? 'color: #10b981; font-weight: bold;' : 'color: #64748b;';
                     tableRows += `
-                        <tr class="border-b border-slate-100 text-sm">
-                            <td class="py-3 font-semibold text-slate-800 text-left" style="text-align: left;">${s.userName}</td>
-                            <td class="py-3 text-slate-600 text-left" style="text-align: left;">${dateStr}</td>
-                            <td class="py-3 text-slate-600 text-left" style="text-align: left;">${loginTimeStr}</td>
-                            <td class="py-3 text-slate-600 text-left" style="text-align: left;">${exitTimeStr}</td>
-                            <td class="py-3 font-mono text-[#50a8f3] font-bold text-left" style="text-align: left;">${s.activeDuration}</td>
-                            <td class="py-3 ${statusClass} text-left" style="text-align: left;">${s.status === 'activo' ? 'En línea' : 'Completado'}</td>
+                        <tr style="border-bottom: 1px solid #e2e8f0; font-size: 13px;">
+                            <td style="padding: 12px 8px; font-weight: 600; color: #1e293b; text-align: left;">${s.userName}</td>
+                            <td style="padding: 12px 8px; color: #475569; text-align: left;">${dateStr}</td>
+                            <td style="padding: 12px 8px; color: #475569; text-align: left;">${loginTimeStr}</td>
+                            <td style="padding: 12px 8px; color: #475569; text-align: left;">${exitTimeStr}</td>
+                            <td style="padding: 12px 8px; font-family: monospace; color: #3b82f6; font-weight: bold; text-align: left;">${s.activeDuration}</td>
+                            <td style="padding: 12px 8px; ${statusClass} text-align: left;">${s.status === 'activo' ? 'En línea' : 'Completado'}</td>
                         </tr>
                     `;
                 });
             }
 
             tempDiv.innerHTML = `
-                <div style="background: #ffffff; color: #1e293b;">
+                <div style="max-width: 900px; margin: 0 auto; color: #1e293b; padding: 20px;">
+                    <!-- Mensaje de Generación en Pantalla (se oculta en el PDF final) -->
+                    <div class="no-print" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 20px; border-radius: 12px; margin-bottom: 24px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-spinner animate-spin"></i> Generando archivo PDF del reporte de asistencia, por favor espera un momento...
+                    </div>
+
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 24px;">
                         <div>
                             <h1 style="font-size: 24px; font-weight: 900; color: #0b142c; margin: 0; letter-spacing: -0.5px;">WonkUp - Reporte de Asistencia</h1>
                             <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Monitoreo de participación y tiempo de actividad del equipo</p>
                         </div>
                         <div style="text-align: right;">
-                            <span style="font-size: 11px; background: #eff6ff; color: #3b82f6; font-weight: 800; padding: 6px 12px; rounded-radius: 9999px; text-transform: uppercase;">Lobby Admin</span>
+                            <span style="font-size: 11px; background: #0b142c; color: #ffffff; font-weight: 800; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase;">Lobby Admin</span>
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
                         <div>
-                            <p style="font-size: 9px; font-weight: 800; color: #94a3b8; uppercase: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">SALA DE TRABAJO</p>
+                            <p style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">SALA DE TRABAJO</p>
                             <p style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0;">${roomName}</p>
                             <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">ID de Sala: ${roomFilterId}</p>
                         </div>
                         <div style="text-align: right;">
-                            <p style="font-size: 9px; font-weight: 800; color: #94a3b8; uppercase: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">EMISIÓN DEL INFORME</p>
+                            <p style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">EMISIÓN DEL INFORME</p>
                             <p style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0;">${new Date().toLocaleDateString()}</p>
                             <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">Hora: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
@@ -1211,12 +1238,12 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid #cbd5e1; font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase;">
-                                    <th style="padding-bottom: 12px; text-align: left;">Integrante</th>
-                                    <th style="padding-bottom: 12px; text-align: left;">Fecha</th>
-                                    <th style="padding-bottom: 12px; text-align: left;">Hora Ingreso</th>
-                                    <th style="padding-bottom: 12px; text-align: left;">Hora Salida</th>
-                                    <th style="padding-bottom: 12px; text-align: left;">Duración Activa</th>
-                                    <th style="padding-bottom: 12px; text-align: left;">Estado</th>
+                                    <th style="padding-bottom: 12px; text-align: left; padding-left: 8px;">Integrante</th>
+                                    <th style="padding-bottom: 12px; text-align: left; padding-left: 8px;">Fecha</th>
+                                    <th style="padding-bottom: 12px; text-align: left; padding-left: 8px;">Hora Ingreso</th>
+                                    <th style="padding-bottom: 12px; text-align: left; padding-left: 8px;">Hora Salida</th>
+                                    <th style="padding-bottom: 12px; text-align: left; padding-left: 8px;">Duración Activa</th>
+                                    <th style="padding-bottom: 12px; text-align: left; padding-left: 8px;">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1235,7 +1262,7 @@
             document.body.appendChild(tempDiv);
 
             const opt = {
-                margin:       12,
+                margin:       10,
                 filename:     `Reporte_Asistencia_${roomName.replace(/\s+/g, '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, logging: false },
@@ -1273,6 +1300,55 @@
         window.handleSearch = function(query) {
             state.searchQuery = query.toLowerCase().trim();
             renderRooms();
+        };
+
+        // MANEJADORES DE DRAG AND DROP PARA LAS TARJETAS DE SALAS
+        window.handleRoomDragStart = function(ev, roomId) {
+            ev.dataTransfer.setData("text/plain", roomId);
+            ev.dataTransfer.effectAllowed = "move";
+            ev.currentTarget.classList.add('opacity-40');
+        };
+
+        window.handleRoomDragOver = function(ev) {
+            ev.preventDefault();
+            ev.dataTransfer.dropEffect = "move";
+            ev.currentTarget.classList.add('border-[#50a8f3]', 'scale-[1.01]', 'border-dashed');
+        };
+
+        window.handleRoomDragLeave = function(ev) {
+            ev.currentTarget.classList.remove('border-[#50a8f3]', 'scale-[1.01]', 'border-dashed');
+        };
+
+        window.handleRoomDrop = async function(ev, targetRoomId) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('border-[#50a8f3]', 'scale-[1.01]', 'border-dashed');
+            
+            const draggedRoomId = ev.dataTransfer.getData("text/plain");
+            if (draggedRoomId === targetRoomId) return;
+
+            const rooms = [...state.rooms];
+            const draggedIdx = rooms.findIndex(r => r.id === draggedRoomId);
+            const targetIdx = rooms.findIndex(r => r.id === targetRoomId);
+            
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const [draggedRoom] = rooms.splice(draggedIdx, 1);
+                rooms.splice(targetIdx, 0, draggedRoom);
+                
+                state.rooms = rooms;
+                renderRooms();
+
+                if (useFirebase) {
+                    // Guardar el nuevo orden secuencial en Firebase (Regla 1 y 3)
+                    for (let i = 0; i < rooms.length; i++) {
+                        const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', rooms[i].id);
+                        await updateDoc(roomDocRef, { order: i });
+                    }
+                } else {
+                    // Persistencia local offline
+                    const roomIdsOrder = rooms.map(r => r.id);
+                    localStorage.setItem('wonkup_rooms_order', JSON.stringify(roomIdsOrder));
+                }
+            }
         };
 
         // RENDERIZADO DEL CATÁLOGO DE SALAS (LOBBY DE ADMIN)
@@ -1334,17 +1410,26 @@
                 const card = document.createElement('div');
                 
                 // Variar el estilo si la sala está archivada para darle un look offline/moteado
-                const borderClass = room.archived ? 'border-slate-800 bg-[#060c1d]/60 opacity-90' : 'border-blue-950 hover:border-blue-800 bg-[#060c1d]';
+                const borderClass = room.archived ? 'border-slate-800 bg-[#060c1d]/60 opacity-90' : 'border-blue-950 hover:border-blue-800 bg-[#060c1d] cursor-grab active:cursor-grabbing';
                 card.className = `${borderClass} border rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all duration-300 hover:-translate-y-1`;
                 
+                // Habilitar Drag & Drop exclusivamente en la pestaña de salas activas para evitar conflictos
+                if (state.currentTab === 'active') {
+                    card.draggable = true;
+                    card.addEventListener('dragstart', (e) => window.handleRoomDragStart(e, room.id));
+                    card.addEventListener('dragover', (e) => window.handleRoomDragOver(e));
+                    card.addEventListener('dragleave', (e) => window.handleRoomDragLeave(e));
+                    card.addEventListener('drop', (e) => window.handleRoomDrop(e, room.id));
+                }
+
                 // Botones específicos según la vista activa (Sala de trabajo vs Archivadores)
                 let actionButtonsHtml = '';
                 if (state.currentTab === 'active') {
                     actionButtonsHtml = `
-                        <a href="#${room.id}" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5 shadow-md">
+                        <a href="#${room.id}" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5 shadow-md no-drag">
                             <i class="fas fa-sign-in-alt"></i> Entrar a colaborar
                         </a>
-                        <div class="grid grid-cols-3 gap-1.5 mt-1.5">
+                        <div class="grid grid-cols-3 gap-1.5 mt-1.5 no-drag">
                             <button onclick="window.exportSessionsToCSV('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1" title="Exportar reporte Excel de actividad">
                                 <i class="fas fa-file-excel text-emerald-500"></i> Excel
                             </button>
@@ -1358,7 +1443,7 @@
                     `;
                 } else {
                     actionButtonsHtml = `
-                        <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div class="grid grid-cols-2 gap-2 mt-2 no-drag">
                             <button onclick="window.restoreRoom('${room.id}')" class="w-full bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-emerald-400 font-extrabold py-2 px-3 rounded-xl text-xs text-center transition-all flex items-center justify-center gap-1.5">
                                 <i class="fas fa-trash-restore"></i> Reactivar
                             </button>
@@ -1372,7 +1457,10 @@
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-start gap-3">
-                            <h3 class="text-white font-bold text-base leading-snug truncate ${room.archived ? 'text-slate-400 line-through' : ''}" title="${room.name}">${room.name}</h3>
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <i class="fas fa-grip-vertical text-slate-600 text-xs cursor-grab active:cursor-grabbing hover:text-slate-400"></i>
+                                <h3 class="text-white font-bold text-base leading-snug truncate ${room.archived ? 'text-slate-400 line-through' : ''}" title="${room.name}">${room.name}</h3>
+                            </div>
                             <span class="text-[9px] font-mono font-bold bg-blue-950 border border-blue-900/60 text-[#50a8f3] px-2 py-0.5 rounded uppercase tracking-wider">#${room.id.split('-')[1] || room.id}</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-1">ID: ${room.id}</p>
@@ -1402,6 +1490,12 @@
                         ${actionButtonsHtml}
                     </div>
                 `;
+                
+                // Evitar que arrastrar desde los botones o inputs mueva la tarjeta
+                card.querySelectorAll('.no-drag').forEach(el => {
+                    el.addEventListener('dragstart', (e) => e.stopPropagation());
+                });
+                
                 grid.appendChild(card);
             });
         }
