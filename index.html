@@ -216,10 +216,11 @@
                     </svg>
                 </div>
             </div>
+            <span class="text-xs bg-blue-950/60 text-[#50a8f3] font-bold px-2.5 py-1 rounded-full border border-blue-900/30" id="header-view-label">Lobby de Salas</span>
         </div>
 
-        <!-- PANEL DE SALA COLABORATIVA Y COLABORADORES -->
-        <div class="flex items-center gap-4 bg-[#0b142c] border border-blue-900/40 rounded-xl px-4 py-1.5 shadow-inner">
+        <!-- PANEL DE SALA COLABORATIVA Y COLABORADORES (Solo se muestra en vista Canvas) -->
+        <div id="canvas-header-tools" class="hidden flex items-center gap-4 bg-[#0b142c] border border-blue-900/40 rounded-xl px-4 py-1.5 shadow-inner">
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" id="sync-status" title="Sincronizado"></span>
                 <span class="text-xs font-mono font-bold text-slate-300" id="room-id-display">SALA: #---</span>
@@ -241,14 +242,56 @@
         </div>
 
         <div class="flex gap-3">
-            <button onclick="exportToPDF()" class="bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2 px-4 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-all flex items-center gap-2 text-sm">
+            <button id="back-to-lobby-btn" onclick="navigateToLobby()" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold py-2 px-4 rounded-xl text-sm transition-all">
+                <i class="fas fa-arrow-left"></i> Volver al Lobby
+            </button>
+            <button id="pdf-export-btn" onclick="exportToPDF()" class="hidden bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2 px-4 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-all flex items-center gap-2 text-sm">
                 <i class="fas fa-file-pdf"></i> PDF
             </button>
         </div>
     </header>
 
-    <!-- ÁREA DE TRABAJO (Scrollable) -->
-    <main class="flex-grow overflow-auto p-4 lg:p-6 bg-[#0b142c] flex justify-center items-start">
+    <!-- 1. VISTA DEL LOBBY / PANEL DE ADMINISTRADOR -->
+    <main id="lobby-view" class="flex-grow overflow-auto p-6 lg:p-12 bg-[#0b142c] flex flex-col items-center">
+        <div class="w-full max-w-4xl flex flex-col gap-8">
+            <!-- Hero de Bienvenida -->
+            <div class="text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-6 bg-[#060c1d] border border-blue-950 p-8 rounded-3xl shadow-xl">
+                <div class="max-w-xl">
+                    <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight">Cocreación de Pitch Canvas</h1>
+                    <p class="text-slate-400 text-sm mt-2 leading-relaxed">Crea salas personalizadas para tus diferentes equipos, comparte el enlace de acceso y supervisa el progreso colaborativo en tiempo real.</p>
+                </div>
+                <!-- Input rápido para crear sala -->
+                <div class="w-full max-w-xs flex flex-col gap-2.5">
+                    <input id="new-room-name-input" type="text" class="w-full bg-[#0b142c] border-2 border-blue-900/40 rounded-xl p-3 text-white text-sm font-bold placeholder:text-slate-500 focus:outline-none focus:border-[#50a8f3] transition-all" placeholder="Nombre del Equipo (ej. Alpha)">
+                    <button onclick="window.createNewRoom()" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-sm">
+                        <i class="fas fa-plus"></i> Crear Nueva Sala
+                    </button>
+                </div>
+            </div>
+
+            <!-- Listado de Salas del Admin -->
+            <div>
+                <h2 class="text-lg font-black text-white uppercase tracking-wider mb-5 flex items-center gap-2">
+                    <i class="fas fa-network-wired text-[#f1c22d]"></i> Salas de Trabajo Activas
+                </h2>
+                
+                <!-- Grid de salas -->
+                <div id="rooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Se cargará dinámicamente -->
+                </div>
+                
+                <!-- Vacío fallback -->
+                <div id="empty-rooms-display" class="hidden text-center py-16 bg-[#060c1d]/40 rounded-3xl border-2 border-dashed border-blue-950">
+                    <div class="text-slate-500 mb-2"><i class="fas fa-folder-open text-4xl"></i></div>
+                    <p class="text-slate-400 font-bold text-sm">No hay salas creadas aún.</p>
+                    <p class="text-slate-500 text-xs mt-1">Usa el panel superior para crear la primera sala de tu equipo.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 2. VISTA DE TRABAJO (CANVAS) -->
+    <main id="canvas-view" class="hidden flex-grow overflow-auto p-4 lg:p-6 bg-[#0b142c] flex justify-center items-start">
         
         <!-- LIENZO DEL PDF (Sincronizado y Responsivo) -->
         <div id="pdf-canvas" class="bg-white shadow-2xl p-6 rounded-3xl canvas-container flex flex-col gap-5 my-auto">
@@ -259,6 +302,7 @@
                 <div class="text-center md:text-left flex flex-col justify-center min-w-[150px]">
                     <div class="text-2xl font-black text-[#50a8f3] tracking-tight leading-none">PITCH</div>
                     <div class="text-2xl font-black text-[#f1c22d] tracking-tight leading-none mt-1">CANVAS</div>
+                    <span id="canvas-room-badge" class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Sala activa</span>
                 </div>
 
                 <!-- Inputs Centrales Simplificados -->
@@ -501,7 +545,7 @@
         </div>
     </div>
 
-    <!-- Modal de Alertas Personalizado (Usa modales estilizados en vez de alerts bloqueantes de navegador) -->
+    <!-- Modal de Alertas Personalizado -->
     <div id="msg-modal" class="hidden fixed inset-0 z-[110] bg-[#060c1d]/80 flex justify-center items-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 m-4 border border-slate-100">
             <div class="flex items-center gap-3 mb-3">
@@ -561,13 +605,8 @@
         };
         // =========================================================================
 
-        // CONFIGURACIÓN DE IDENTIDAD Y SALA
-        let roomId = window.location.hash.substring(1) || null;
-        if (!roomId) {
-            roomId = "room-" + Math.floor(1000 + Math.random() * 9000);
-            window.location.hash = roomId;
-        }
-        document.getElementById('room-id-display').innerText = `SALA: #${roomId.toUpperCase()}`;
+        // CONFIGURACIÓN DE IDENTIDAD Y SALA ACTIVA
+        let roomId = null;
 
         // Identidad del colaborador actual
         let myName = localStorage.getItem('wonkup_user_name') || '';
@@ -584,14 +623,11 @@
         try {
             let activeConfig = null;
 
-            // 1. Priorizar el entorno dinámico del contenedor
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 activeConfig = JSON.parse(__firebase_config);
-            } 
-            // 2. Si no existe, usar la configuración personalizada de tu Firebase (para GitHub Pages / Producción)
-            else if (MY_CUSTOM_FIREBASE_CONFIG) {
+            } else if (MY_CUSTOM_FIREBASE_CONFIG) {
                 activeConfig = MY_CUSTOM_FIREBASE_CONFIG;
-                appId = 'production-custom'; // Sobrescribir ID de app pública
+                appId = 'production-custom'; 
             }
 
             if (activeConfig) {
@@ -607,8 +643,9 @@
 
         // Estado local sincronizado de la app
         let state = {
+            rooms: [],
             notes: [],
-            metadata: { ideaTitle: 'EcoFilamento Escolar', teamNames: 'Nico, Sofía y Leo' },
+            metadata: { ideaTitle: '', teamNames: '' },
             presence: []
         };
 
@@ -639,51 +676,49 @@
             onAuthStateChanged(auth, (user) => {
                 if (!user) return;
 
-                // Actualizar estado de presencia propio periódicamente
-                updatePresenceInCloud();
+                // Actualizar estado de presencia propio periódicamente si estamos en una sala
                 setInterval(updatePresenceInCloud, 10000);
 
                 // REGLA 1: Usar rutas autoritativas de subcolección pública para datos colaborativos
+                const roomsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
                 const notesColRef = collection(db, 'artifacts', appId, 'public', 'data', 'notes');
-                const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
                 const presenceColRef = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
 
-                // 1. Sincronización de notas en tiempo real (REGLA 2: Filtrar en memoria)
+                // 1. Sincronizar el catálogo de salas
+                onSnapshot(roomsColRef, (snapshot) => {
+                    state.rooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderRooms();
+                }, (error) => {
+                    console.error("Error al sincronizar salas:", error);
+                });
+
+                // 2. Sincronización de notas en tiempo real (REGLA 2: Filtrar en memoria por roomId)
                 onSnapshot(notesColRef, (snapshot) => {
                     const allNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    // Filtrar en memoria por la sala activa
-                    state.notes = allNotes.filter(n => n.roomId === roomId);
-                    renderNotes();
-                    document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
-                    document.getElementById('sync-status').title = "Sincronizado con Base de Datos";
+                    state.notes = allNotes;
+                    if (roomId) {
+                        renderNotes();
+                    }
+                    // Actualizar indicadores del Lobby por conteo de notas o miembros
+                    renderRooms();
                 }, (error) => {
                     console.error("Error al sincronizar notas:", error);
-                    document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-red-500";
                 });
 
-                // 2. Sincronización de inputs de cabecera en tiempo real
-                onSnapshot(metadataDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        state.metadata = docSnap.data();
-                        syncHeaderInputs();
-                    }
-                }, (error) => {
-                    console.error("Error al sincronizar metadatos:", error);
-                });
-
-                // 3. Sincronización de presencia de colaboradores activos (REGLA 2)
+                // 3. Sincronización de presencia de colaboradores activos (REGLA 2: Filtrar en memoria)
                 onSnapshot(presenceColRef, (snapshot) => {
                     const allPresence = snapshot.docs.map(doc => doc.data());
                     const cutoff = Date.now() - 30000; // Activos en los últimos 30 segundos
-                    state.presence = allPresence.filter(p => p.roomId === roomId && p.lastActive > cutoff);
+                    state.presence = allPresence.filter(p => p.lastActive > cutoff);
                     renderPresence();
+                    renderRooms(); // Recalcular presencia en las tarjetas de sala del lobby
                 });
             });
         }
 
         // Publicar presencia propia en Firebase
         async function updatePresenceInCloud() {
-            if (!useFirebase || !auth.currentUser) return;
+            if (!useFirebase || !auth.currentUser || !roomId) return;
             const presenceDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'presence', myUserId);
             try {
                 await setDoc(presenceDocRef, {
@@ -697,36 +732,74 @@
             }
         }
 
+        // Suscribirse a una sala específica de forma aislada
+        let metadataUnsubscribe = null;
+        window.syncRoomCanvasData = function() {
+            if (!roomId) return;
+
+            // Registrar presencia inmediata
+            updatePresenceInCloud();
+
+            if (!useFirebase) {
+                // Modo simulador local
+                renderNotes();
+                renderPresence();
+                syncHeaderInputs();
+                return;
+            }
+
+            // Desuscribirse del snapshot de metadatos anterior si existía
+            if (metadataUnsubscribe) metadataUnsubscribe();
+
+            // Sincronización de inputs de cabecera en tiempo real para esta sala
+            const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
+            metadataUnsubscribe = onSnapshot(metadataDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    state.metadata = docSnap.data();
+                    syncHeaderInputs();
+                } else {
+                    // Inicializar metadatos vacíos si es una sala completamente nueva
+                    state.metadata = { ideaTitle: '', teamNames: '' };
+                    syncHeaderInputs();
+                }
+            }, (error) => {
+                console.error("Error al sincronizar metadatos de la sala:", error);
+            });
+
+            renderNotes();
+            renderPresence();
+        };
+
         // MOTOR LOCAL DE COCREACIÓN (MOCK INTERACTIVO EN CASO DE NO DETECTAR FIREBASE)
         function setupMockSync() {
             document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-amber-500";
             document.getElementById('sync-status').title = "Modo simulado (Sin Firebase activo)";
             
-            // Cargar datos iniciales
+            // Salas preestablecidas
+            state.rooms = [
+                { id: 'room-alpha', name: 'Equipo Alpha (Ejemplo)', createdAt: Date.now() },
+                { id: 'room-beta', name: 'Equipo Beta (Ejemplo)', createdAt: Date.now() - 3600000 }
+            ];
+
+            // Notas preestablecidas
             state.notes = [
-                { id: 'note-1', text: '¿Sabías que el 80% del plástico que botan las escuelas puede convertirse en filamento 3D?', color: 'bg-yellow-200', blockId: 'gancho', roomId: roomId },
-                { id: 'note-2', text: 'El auge de la impresión 3D educativa y las nuevas normas de reciclaje escolar en el 2026.', color: 'bg-yellow-200', blockId: 'timing', roomId: roomId },
-                { id: 'note-3', text: 'Las escuelas gastan miles de dólares al año en material de plástico desechable e insumos de impresión.', color: 'bg-blue-200', blockId: 'problema', roomId: roomId },
-                { id: 'note-4', text: 'EcoFilamento: Trituradora escolar de plástico interactiva del tamaño de un microondas.', color: 'bg-blue-200', blockId: 'solucion', roomId: roomId },
-                { id: 'note-5', text: 'Nico (Ingeniería), Sofía (Experiencia de Aprendizaje), Leo (Ventas).', color: 'bg-blue-200', blockId: 'equipo', roomId: roomId },
-                { id: 'note-6', text: 'Venta directa de máquinas trituradoras y suscripción mensual de mantenimiento preventivo.', color: 'bg-green-200', blockId: 'modelo', roomId: roomId },
-                { id: 'note-7', text: 'Prototipo probado con éxito en 3 colegios locales. Reciclamos 150kg de PET en tan solo 2 semanas.', color: 'bg-pink-200', blockId: 'traccion', roomId: roomId },
-                { id: 'note-8', text: 'Buscamos 5 directores de escuela secundaria que quieran sumarse a nuestro piloto este semestre.', color: 'bg-indigo-200', blockId: 'ask', roomId: roomId }
+                { id: 'note-1', text: '¿Sabías que el 80% del plástico que botan las escuelas puede convertirse en filamento 3D?', color: 'bg-yellow-200', blockId: 'gancho', roomId: 'room-alpha' },
+                { id: 'note-2', text: 'El auge de la impresión 3D educativa y las nuevas normas de reciclaje escolar en el 2026.', color: 'bg-yellow-200', blockId: 'timing', roomId: 'room-alpha' },
+                { id: 'note-3', text: 'Trituradora escolar EcoFilamento: instantánea y segura para niños.', color: 'bg-blue-200', blockId: 'solucion', roomId: 'room-alpha' }
             ];
             
             state.presence = [
-                { userId: myUserId, userName: myName || 'Tú', roomId: roomId },
-                { userId: 'mock-1', userName: 'Andrés (Simulado)', roomId: roomId },
-                { userId: 'mock-2', userName: 'Diana (Simulado)', roomId: roomId }
+                { userId: myUserId, userName: myName || 'Tú', roomId: 'room-alpha', lastActive: Date.now() },
+                { userId: 'mock-1', userName: 'Diana', roomId: 'room-alpha', lastActive: Date.now() },
+                { userId: 'mock-2', userName: 'Andrés', roomId: 'room-beta', lastActive: Date.now() }
             ];
 
-            renderNotes();
-            renderPresence();
-            syncHeaderInputs();
+            renderRooms();
         }
 
         // ACCIONES DE CREAR, EDITAR Y ACTUALIZAR NOTAS COLABORATIVAS
         window.saveNoteToCloud = async function(noteId, text, color, blockId) {
+            if (!roomId) return;
             if (useFirebase) {
                 const notesColRef = collection(db, 'artifacts', appId, 'public', 'data', 'notes');
                 if (noteId) {
@@ -735,7 +808,6 @@
                     await addDoc(notesColRef, { text, color, blockId, roomId, createdAt: Date.now(), creatorId: myUserId });
                 }
             } else {
-                // Actualización en local mock
                 if (noteId) {
                     const idx = state.notes.findIndex(n => n.id === noteId);
                     if (idx !== -1) {
@@ -780,6 +852,7 @@
         };
 
         window.saveMetadataToCloud = async function(key, value) {
+            if (!roomId) return;
             state.metadata[key] = value;
             if (useFirebase) {
                 const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
@@ -787,12 +860,101 @@
             }
         };
 
-        // RENDERIZADO DINÁMICO DE NOTAS ADHESIVAS
+        // CREAR UNA NUEVA SALA DESDE EL LOBBY
+        window.createNewRoom = async function() {
+            const roomNameInput = document.getElementById('new-room-name-input');
+            const name = roomNameInput.value.trim();
+            if (!name) {
+                showMsg("Falta información", "Por favor ingresa un nombre para identificar la sala de tu equipo.");
+                return;
+            }
+
+            const customRoomId = "room-" + Math.floor(1000 + Math.random() * 9000);
+
+            if (useFirebase) {
+                const roomsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
+                try {
+                    await setDoc(doc(roomsColRef, customRoomId), {
+                        id: customRoomId,
+                        name: name,
+                        createdAt: Date.now(),
+                        creatorId: myUserId
+                    });
+                } catch (err) {
+                    console.error("Error al registrar sala en base de datos:", err);
+                }
+            } else {
+                state.rooms.push({
+                    id: customRoomId,
+                    name: name,
+                    createdAt: Date.now()
+                });
+                renderRooms();
+            }
+
+            roomNameInput.value = '';
+            // Redireccionar al hash de la nueva sala recién creada
+            window.location.hash = customRoomId;
+        };
+
+        // RENDERIZADO DEL CATÁLOGO DE SALAS (LOBBY DE ADMIN)
+        function renderRooms() {
+            const grid = document.getElementById('rooms-grid');
+            const emptyState = document.getElementById('empty-rooms-display');
+            grid.innerHTML = '';
+
+            if (state.rooms.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            state.rooms.forEach(room => {
+                // Calcular estadísticas de sala en base al estado general filtrado en JS (Regla 2)
+                const roomNotesCount = state.notes.filter(n => n.roomId === room.id).length;
+                const roomActiveCollabs = state.presence.filter(p => p.roomId === room.id).length;
+
+                const card = document.createElement('div');
+                card.className = "bg-[#060c1d] border border-blue-950 hover:border-blue-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all duration-300 hover:-translate-y-1";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start gap-3">
+                            <h3 class="text-white font-bold text-base leading-snug truncate" title="${room.name}">${room.name}</h3>
+                            <span class="text-[9px] font-mono font-bold bg-blue-950 border border-blue-900/60 text-[#50a8f3] px-2 py-0.5 rounded uppercase tracking-wider">#${room.id.split('-')[1] || room.id}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">ID: ${room.id}</p>
+                        
+                        <div class="flex gap-4 mt-5 mb-6">
+                            <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                                <i class="fas fa-sticky-note text-[#f1c22d]"></i>
+                                <span class="font-bold text-white">${roomNotesCount}</span> notas
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                                <i class="fas fa-users text-[#50a8f3]"></i>
+                                <span class="font-bold text-white">${roomActiveCollabs}</span> activos
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="#${room.id}" class="flex-grow bg-blue-950/80 hover:bg-blue-900 border border-blue-900/30 text-white font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5">
+                            <i class="fas fa-sign-in-alt"></i> Entrar a colaborar
+                        </a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // RENDERIZADO DINÁMICO DE NOTAS ADHESIVAS FILTRADAS POR SALA (Regla 2)
         function renderNotes() {
-            // Limpiar todos los contenedores de notas
             document.querySelectorAll('.notes-container').forEach(c => c.innerHTML = '');
 
-            state.notes.forEach(note => {
+            // Filtrar notas pertenecientes a esta sala activa en la memoria (Regla 2)
+            const roomNotes = state.notes.filter(n => n.roomId === roomId);
+
+            roomNotes.forEach(note => {
                 const container = document.querySelector(`#block-${note.blockId} .notes-container`);
                 if (!container) return;
 
@@ -803,7 +965,6 @@
                 postIt.dataset.rawText = note.text;
                 postIt.dataset.color = note.color;
 
-                // Eventos nativos de drag and drop
                 postIt.addEventListener('dragstart', (ev) => {
                     ev.dataTransfer.setData("text/plain", ev.target.id);
                     ev.target.classList.add('opacity-40');
@@ -825,19 +986,20 @@
             });
         }
 
-        // RENDERIZADO DE COLABORADORES ACTIVOS
+        // RENDERIZADO DE AVATARES DE PRESENCIA FILTRADOS POR SALA (Regla 2)
         function renderPresence() {
             const container = document.getElementById('collaborators-container');
             container.innerHTML = '';
 
-            state.presence.forEach(collab => {
+            const roomCollabs = state.presence.filter(p => p.roomId === roomId);
+
+            roomCollabs.forEach(collab => {
                 const isMe = collab.userId === myUserId;
                 const initials = (collab.userName || 'A').charAt(0).toUpperCase();
                 
                 const avatar = document.createElement('div');
                 avatar.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white border-2 border-[#060c1d] uppercase relative cursor-pointer`;
                 
-                // Color aleatorio por inicial para diferenciarlos visualmente
                 const colors = ['bg-amber-500', 'bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-indigo-500', 'bg-violet-500'];
                 const colorIdx = initials.charCodeAt(0) % colors.length;
                 avatar.classList.add(colors[colorIdx]);
@@ -886,7 +1048,6 @@
             localStorage.setItem('wonkup_user_name', myName);
             document.getElementById('username-modal').classList.add('hidden');
             
-            // Actualizar presencia localmente y en la nube
             if (useFirebase) {
                 updatePresenceInCloud();
             } else {
@@ -897,19 +1058,75 @@
                 }
             }
 
-            // ¡INICIALIZAR SINCRONIZACIÓN DE FIREBASE INMEDIATAMENTE SIN ESPERAR RECARGA!
+            // Inicializar sincronización de Firebase y navegación
             setupFirebaseSync();
+            window.handleNavigationState();
         };
 
-        // Mostrar el modal de nombre si no se ha configurado uno previamente
+        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas)
+        window.handleNavigationState = function() {
+            // Verificar si el nombre está registrado primero
+            if (!myName) {
+                window.promptForName();
+                return;
+            }
+
+            const hash = window.location.hash.substring(1);
+            const lobbyView = document.getElementById('lobby-view');
+            const canvasView = document.getElementById('canvas-view');
+            
+            const headerLabel = document.getElementById('header-view-label');
+            const canvasHeaderTools = document.getElementById('canvas-header-tools');
+            const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
+            const pdfExportBtn = document.getElementById('pdf-export-btn');
+
+            if (!hash || hash === 'lobby' || hash === '') {
+                // VISTA DEL LOBBY
+                roomId = null;
+                lobbyView.classList.remove('hidden');
+                canvasView.classList.add('hidden');
+                
+                headerLabel.innerText = "Lobby de Salas";
+                headerLabel.classList.remove('hidden');
+                canvasHeaderTools.classList.add('hidden');
+                backToLobbyBtn.classList.add('hidden');
+                pdfExportBtn.classList.add('hidden');
+                
+                renderRooms();
+            } else {
+                // VISTA DEL CANVAS DE SALA ACTIVA
+                roomId = hash;
+                lobbyView.classList.add('hidden');
+                canvasView.classList.remove('hidden');
+                
+                headerLabel.classList.add('hidden');
+                canvasHeaderTools.classList.remove('hidden');
+                backToLobbyBtn.classList.remove('hidden');
+                pdfExportBtn.classList.remove('hidden');
+
+                document.getElementById('room-id-display').innerText = `SALA: #${roomId.split('-')[1] || roomId.toUpperCase()}`;
+                
+                // Buscar el nombre descriptivo de la sala si ya cargó en el Lobby
+                const currentRoom = state.rooms.find(r => r.id === roomId);
+                document.getElementById('canvas-room-badge').innerText = currentRoom ? `Sala: ${currentRoom.name}` : `Sala: ${roomId}`;
+
+                // Iniciar sincronización de datos de la sala
+                window.syncRoomCanvasData();
+            }
+        };
+
+        // Escuchar cambios de hash en la URL para navegar
+        window.addEventListener('hashchange', window.handleNavigationState);
+
+        // Inicializar
         if (!myName) {
             window.promptForName();
         } else {
-            // Inicializar sincronización
             setupFirebaseSync();
+            window.handleNavigationState();
         }
 
-        // Vincular funciones de Firebase al contexto de ventana
+        // Vincular funciones globales
         window.setupFirebaseSync = setupFirebaseSync;
     </script>
 
@@ -948,9 +1165,12 @@
             document.getElementById('msg-modal').classList.remove('hidden');
         }
 
-        // Modificación de apertura y cerrado seguro para evitar fallos CORS
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function navigateToLobby() {
+            window.location.hash = '';
+        }
 
         // Configuración de colores del modal
         document.querySelectorAll('.color-pick-btn').forEach(btn => {
