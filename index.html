@@ -24,11 +24,15 @@
             font-family: 'Inter', sans-serif; 
         }
         
-        /* Contenedor del lienzo para mantener el formato horizontal adecuado en la exportación */
+        /* Contenedor del lienzo - Fluido en móvil/tablet, fijo en pantallas grandes */
         .canvas-container {
-            min-width: 1050px;
-            max-width: 1300px;
             width: 100%;
+            max-width: 1300px;
+        }
+        @media (min-width: 1024px) {
+            .canvas-container {
+                min-width: 1050px;
+            }
         }
 
         /* Estilo base de los bloques del lienzo */
@@ -148,6 +152,32 @@
             word-spacing: normal !important;
             text-transform: none !important;
         }
+
+        /* FORZAR REGLAS DE MAQUETACIÓN HORIZONTAL DE UNA SOLA CARILLA EXCLUSIVAMENTE PARA EL PDF */
+        .exporting.canvas-container {
+            min-width: 1100px !important;
+            width: 1100px !important;
+        }
+        .exporting .grid {
+            grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+            display: grid !important;
+            gap: 1rem !important;
+        }
+        .exporting #block-gancho, .exporting #block-timing {
+            grid-column: span 6 / span 6 !important;
+        }
+        .exporting #block-problema, .exporting #block-solucion, .exporting #block-equipo,
+        .exporting #block-modelo, .exporting #block-traccion, .exporting #block-ask {
+            grid-column: span 4 / span 4 !important;
+        }
+        .exporting .canvas-header {
+            flex-direction: row !important;
+            gap: 1rem !important;
+        }
+        .exporting .canvas-header-inputs {
+            flex-direction: row !important;
+            gap: 1.5rem !important;
+        }
         
         /* Personalización de la barra de scroll de los contenedores de notas */
         .notes-container {
@@ -220,31 +250,31 @@
     <!-- ÁREA DE TRABAJO (Scrollable) -->
     <main class="flex-grow overflow-auto p-4 lg:p-6 bg-[#0b142c] flex justify-center items-start">
         
-        <!-- LIENZO DEL PDF -->
+        <!-- LIENZO DEL PDF (Sincronizado y Responsivo) -->
         <div id="pdf-canvas" class="bg-white shadow-2xl p-6 rounded-3xl canvas-container flex flex-col gap-5 my-auto">
             
-            <!-- Cabecera del Documento (Diseñado para no romperse en el PDF) -->
-            <div class="flex justify-between items-center border-b-2 border-slate-100 pb-4">
+            <!-- Cabecera del Documento (Diseño Responsivo que se mantiene en fila durante la exportación) -->
+            <div class="canvas-header flex flex-col md:flex-row justify-between items-center border-b-2 border-slate-100 pb-4 gap-4">
                 <!-- Título del Canvas -->
-                <div class="text-left flex flex-col justify-center min-w-[200px]">
+                <div class="text-center md:text-left flex flex-col justify-center min-w-[150px]">
                     <div class="text-2xl font-black text-[#50a8f3] tracking-tight leading-none">PITCH</div>
                     <div class="text-2xl font-black text-[#f1c22d] tracking-tight leading-none mt-1">CANVAS</div>
                 </div>
 
-                <!-- Inputs Centrales Ampliados -->
-                <div class="flex flex-col sm:flex-row gap-6 w-full lg:flex-grow justify-center items-center px-4">
+                <!-- Inputs Centrales Simplificados -->
+                <div class="canvas-header-inputs flex flex-col sm:flex-row gap-4 w-full lg:flex-grow justify-center items-center px-4">
                     <div class="w-full max-w-xs text-center font-semibold">
-                        <label class="block text-[10px] font-extrabold text-[#50a8f3] uppercase tracking-widest mb-1"><i class="fas fa-lightbulb mr-1"></i> Idea de Proyecto:</label>
+                        <label class="block text-[10px] font-extrabold text-[#50a8f3] uppercase tracking-widest mb-1"><i class="fas fa-lightbulb mr-1"></i> Idea:</label>
                         <input id="input-idea" type="text" class="w-full border-b-2 border-slate-200 bg-slate-50/50 p-2 text-sm rounded outline-none focus:border-[#50a8f3] text-center font-bold text-slate-800 transition-all focus:bg-white" placeholder="Ej: EcoFilamento 3D">
                     </div>
                     <div class="w-full max-w-md text-center font-semibold">
-                        <label class="block text-[10px] font-extrabold text-[#f1c22d] uppercase tracking-widest mb-1"><i class="fas fa-users mr-1"></i> Integrantes del Equipo:</label>
+                        <label class="block text-[10px] font-extrabold text-[#f1c22d] uppercase tracking-widest mb-1"><i class="fas fa-users mr-1"></i> Team Power:</label>
                         <input id="input-team" type="text" class="w-full border-b-2 border-slate-200 bg-slate-50/50 p-2 text-sm rounded outline-none focus:border-[#f1c22d] text-center font-bold text-slate-800 transition-all focus:bg-white" placeholder="Nombres del equipo...">
                     </div>
                 </div>
 
-                <!-- Logotipo para el PDF (Sin el texto "Canvas Oficial" abajo) -->
-                <div class="flex flex-col items-end lg:w-1/5 flex-shrink-0">
+                <!-- Logotipo para el PDF -->
+                <div class="hidden md:flex flex-col items-end lg:w-1/5 flex-shrink-0">
                     <img src="logo_wonkup.png" alt="WonkUp" class="h-8 w-auto object-contain animate-fadeIn" onerror="this.style.display='none'; document.getElementById('pdf-svg-fallback').classList.remove('hidden')">
                     <div id="pdf-svg-fallback" class="hidden">
                         <svg class="h-8 w-auto text-[#50a8f3]" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -258,14 +288,14 @@
                 </div>
             </div>
 
-            <!-- GEOMETRÍA DEL LIENZO (3 Filas Lógicas) -->
+            <!-- GEOMETRÍA DEL LIENZO (3 Filas Lógicas - Apilables en móvil y responsivas) -->
             <div class="flex flex-col gap-4 flex-grow min-h-[480px]">
                 
                 <!-- FILA 1: EL ENGANCHE Y CONTEXTO (2 Columnas - Amarillo WonkUp) -->
-                <div class="grid grid-cols-12 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                     
-                    <!-- 1. El Gancho (Col 1-6) -->
-                    <div class="col-span-6 canvas-block border-[#f1c22d]/40 bg-[#f1c22d]/5 rounded-2xl relative" id="block-gancho" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'gancho')">
+                    <!-- 1. El Gancho -->
+                    <div class="col-span-12 md:col-span-6 canvas-block border-[#f1c22d]/40 bg-[#f1c22d]/5 rounded-2xl relative" id="block-gancho" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'gancho')">
                         <div class="block-header border-[#f1c22d]/10">
                             <div>
                                 <h3 class="font-extrabold text-[#d0a31d] text-xs flex items-center gap-1.5">
@@ -285,8 +315,8 @@
                         <div class="notes-container flex-grow overflow-y-auto min-h-[110px] max-h-[220px] pr-1"></div>
                     </div>
 
-                    <!-- 2. Por Qué Ahora (Col 7-12) -->
-                    <div class="col-span-6 canvas-block border-[#f1c22d]/40 bg-[#f1c22d]/5 rounded-2xl relative" id="block-timing" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'timing')">
+                    <!-- 2. Por Qué Ahora -->
+                    <div class="col-span-12 md:col-span-6 canvas-block border-[#f1c22d]/40 bg-[#f1c22d]/5 rounded-2xl relative" id="block-timing" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'timing')">
                         <div class="block-header border-[#f1c22d]/10">
                             <div>
                                 <h3 class="font-extrabold text-[#d0a31d] text-xs flex items-center gap-1.5">
@@ -309,10 +339,10 @@
                 </div>
 
                 <!-- FILA 2: LA PROPUESTA CENTRAL (3 Columnas - Azul WonkUp) -->
-                <div class="grid grid-cols-12 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                     
-                    <!-- 3. El Problema (Col 1-4) -->
-                    <div class="col-span-4 canvas-block border-[#50a8f3]/40 bg-[#50a8f3]/5 rounded-2xl relative" id="block-problema" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'problema')">
+                    <!-- 3. El Problema -->
+                    <div class="col-span-12 md:col-span-4 canvas-block border-[#50a8f3]/40 bg-[#50a8f3]/5 rounded-2xl relative" id="block-problema" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'problema')">
                         <div class="block-header border-[#50a8f3]/10">
                             <div>
                                 <h3 class="font-extrabold text-[#3b8fd3] text-xs flex items-center gap-1.5">
@@ -332,8 +362,8 @@
                         <div class="notes-container flex-grow overflow-y-auto min-h-[140px] max-h-[260px] pr-1"></div>
                     </div>
 
-                    <!-- 4. La Solución / Valor Diferencial (Col 5-8) -->
-                    <div class="col-span-4 canvas-block border-[#50a8f3]/40 bg-[#50a8f3]/5 rounded-2xl relative" id="block-solucion" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'solucion')">
+                    <!-- 4. La Solución -->
+                    <div class="col-span-12 md:col-span-4 canvas-block border-[#50a8f3]/40 bg-[#50a8f3]/5 rounded-2xl relative" id="block-solucion" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'solucion')">
                         <div class="block-header border-[#50a8f3]/10">
                             <div>
                                 <h3 class="font-extrabold text-[#3b8fd3] text-xs flex items-center gap-1.5">
@@ -353,8 +383,8 @@
                         <div class="notes-container flex-grow overflow-y-auto min-h-[140px] max-h-[260px] pr-1"></div>
                     </div>
 
-                    <!-- 5. El Equipo (Col 9-12) -->
-                    <div class="col-span-4 canvas-block border-[#50a8f3]/40 bg-[#50a8f3]/5 rounded-2xl relative" id="block-equipo" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'equipo')">
+                    <!-- 5. El Equipo -->
+                    <div class="col-span-12 md:col-span-4 canvas-block border-[#50a8f3]/40 bg-[#50a8f3]/5 rounded-2xl relative" id="block-equipo" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'equipo')">
                         <div class="block-header border-[#50a8f3]/10">
                             <div>
                                 <h3 class="font-extrabold text-[#3b8fd3] text-xs flex items-center gap-1.5">
@@ -377,10 +407,10 @@
                 </div>
 
                 <!-- FILA 3: EL NEGOCIO Y EL CIERRE (3 Columnas - Verdes / Rosas / Azules complementarios) -->
-                <div class="grid grid-cols-12 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                     
-                    <!-- 6. Modelo de Negocio (Col 1-4) -->
-                    <div class="col-span-4 canvas-block border-emerald-300 bg-emerald-50/20 rounded-2xl relative" id="block-modelo" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'modelo')">
+                    <!-- 6. Modelo de Negocio -->
+                    <div class="col-span-12 md:col-span-4 canvas-block border-emerald-300 bg-emerald-50/20 rounded-2xl relative" id="block-modelo" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'modelo')">
                         <div class="block-header border-emerald-100">
                             <div>
                                 <h3 class="font-extrabold text-emerald-800 text-xs flex items-center gap-1.5">
@@ -400,8 +430,8 @@
                         <div class="notes-container flex-grow overflow-y-auto min-h-[140px] max-h-[260px] pr-1"></div>
                     </div>
 
-                    <!-- 7. Tracción / Validación (Col 5-8) -->
-                    <div class="col-span-4 canvas-block border-rose-300 bg-rose-50/20 rounded-2xl relative" id="block-traccion" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'traccion')">
+                    <!-- 7. Tracción / Validación -->
+                    <div class="col-span-12 md:col-span-4 canvas-block border-rose-300 bg-rose-50/20 rounded-2xl relative" id="block-traccion" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'traccion')">
                         <div class="block-header border-rose-100">
                             <div>
                                 <h3 class="font-extrabold text-rose-800 text-xs flex items-center gap-1.5">
@@ -421,8 +451,8 @@
                         <div class="notes-container flex-grow overflow-y-auto min-h-[140px] max-h-[260px] pr-1"></div>
                     </div>
 
-                    <!-- 8. La Petición / The Ask (Col 9-12) -->
-                    <div class="col-span-4 canvas-block border-violet-300 bg-violet-50/20 rounded-2xl relative" id="block-ask" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ask')">
+                    <!-- 8. La Petición / The Ask -->
+                    <div class="col-span-12 md:col-span-4 canvas-block border-violet-300 bg-violet-50/20 rounded-2xl relative" id="block-ask" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ask')">
                         <div class="block-header border-violet-100">
                             <div>
                                 <h3 class="font-extrabold text-violet-800 text-xs flex items-center gap-1.5">
@@ -437,7 +467,7 @@
                                 </h3>
                                 <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Qué necesitas de la audiencia (socios, capital, mentoría).</p>
                             </div>
-                            <button onclick="openNoteModal('ask', 'bg-indigo-200')" class="add-violet-700 hover:text-violet-800 transition-colors"><i class="fas fa-plus-circle text-base"></i></button>
+                            <button onclick="openNoteModal('ask', 'bg-indigo-200')" class="text-violet-700 hover:text-violet-800 transition-colors"><i class="fas fa-plus-circle text-base"></i></button>
                         </div>
                         <div class="notes-container flex-grow overflow-y-auto min-h-[140px] max-h-[260px] pr-1"></div>
                     </div>
@@ -453,8 +483,12 @@
     <!-- Modal Nombre Colaborador (Obligatorio al iniciar para saber quién es quién) -->
     <div id="username-modal" class="hidden fixed inset-0 z-[120] bg-[#060c1d]/95 flex justify-center items-center backdrop-blur-md">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 m-4 border border-blue-900/20 text-center">
-            <div class="w-16 h-16 bg-blue-100 text-[#50a8f3] rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-users-rectangle text-2xl"></i>
+            <!-- Logotipo de Bienvenida de WonkUp (logo_wonkup1.png) con fallback dinámico -->
+            <div class="flex justify-center mb-6">
+                <img src="logo_wonkup1.png" alt="WonkUp Logo" class="h-14 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('modal-icon-fallback').classList.remove('hidden')">
+                <div id="modal-icon-fallback" class="hidden w-16 h-16 bg-blue-100 text-[#50a8f3] rounded-full flex items-center justify-center">
+                    <i class="fas fa-users-rectangle text-2xl"></i>
+                </div>
             </div>
             <h3 class="text-xl font-extrabold text-slate-900 mb-2">¡Bienvenido al Pitch Canvas Colaborativo!</h3>
             <p class="text-sm text-slate-500 mb-6">Ingresa tu nombre o apodo para que tu equipo pueda reconocerte mientras cocreais en tiempo real.</p>
