@@ -260,33 +260,59 @@
                     <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight">Cocreación de Pitch Canvas</h1>
                     <p class="text-slate-400 text-sm mt-2 leading-relaxed">Crea salas personalizadas para tus diferentes equipos, comparte el enlace de acceso y supervisa el progreso colaborativo en tiempo real.</p>
                 </div>
-                <!-- Input rápido para crear sala -->
+                <!-- Input rápido para crear sala con selector de etiquetas de colores -->
                 <div class="w-full max-w-xs flex flex-col gap-2.5">
                     <input id="new-room-name-input" type="text" class="w-full bg-[#0b142c] border-2 border-blue-900/40 rounded-xl p-3 text-white text-sm font-bold placeholder:text-slate-500 focus:outline-none focus:border-[#50a8f3] transition-all" placeholder="Nombre del Equipo (ej. Alpha)">
+                    
+                    <div class="flex gap-2">
+                        <input id="new-room-tag-input" type="text" class="w-1/2 bg-[#0b142c] border-2 border-blue-900/40 rounded-xl p-2.5 text-white text-xs font-bold placeholder:text-slate-500 focus:outline-none focus:border-[#50a8f3] transition-all" placeholder="Etiqueta (ej. Agora)">
+                        <select id="new-room-tag-color" class="w-1/2 bg-[#0b142c] border-2 border-blue-900/40 rounded-xl p-2.5 text-slate-300 text-xs font-bold focus:outline-none focus:border-[#50a8f3] transition-all">
+                            <option value="blue">Color: Celeste</option>
+                            <option value="green">Color: Verde</option>
+                            <option value="purple">Color: Morado</option>
+                            <option value="rose">Color: Rosado</option>
+                            <option value="amber">Color: Amarillo</option>
+                            <option value="teal">Color: Turquesa</option>
+                        </select>
+                    </div>
+
                     <button onclick="window.createNewRoom()" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-sm">
                         <i class="fas fa-plus"></i> Crear Nueva Sala
                     </button>
                 </div>
             </div>
 
-            <!-- CONTROLES DE ADMINISTRACIÓN: Pestañas + Buscador (Filtros para +200 salas) -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#060c1d] border border-blue-950 p-4 rounded-2xl shadow-lg">
+            <!-- CONTROLES DE ADMINISTRACIÓN: Pestañas + Filtro de Etiquetas + Buscador -->
+            <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-[#060c1d] border border-blue-950 p-4 rounded-2xl shadow-lg w-full">
                 <!-- Pestañas Activas / Archivadas -->
-                <div class="flex bg-[#0b142c] p-1 rounded-xl border border-blue-900/30 w-full md:w-auto">
-                    <button id="tab-active" onclick="window.switchTab('active')" class="flex-grow md:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white">
+                <div class="flex bg-[#0b142c] p-1 rounded-xl border border-blue-900/30 w-full lg:w-auto">
+                    <button id="tab-active" onclick="window.switchTab('active')" class="flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white whitespace-nowrap">
                         Salas Activas <span id="count-active" class="ml-1 bg-white/20 px-1.5 py-0.5 rounded text-[10px]">0</span>
                     </button>
-                    <button id="tab-archived" onclick="window.switchTab('archived')" class="flex-grow md:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white">
+                    <button id="tab-archived" onclick="window.switchTab('archived')" class="flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white whitespace-nowrap">
                         Archivadas <span id="count-archived" class="ml-1 bg-white/10 px-1.5 py-0.5 rounded text-[10px]">0</span>
                     </button>
                 </div>
                 
-                <!-- Buscador de salas -->
-                <div class="relative w-full md:w-80">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
-                        <i class="fas fa-search text-xs"></i>
-                    </span>
-                    <input id="search-rooms-input" oninput="window.handleSearch(this.value)" type="text" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2 px-3 pl-10 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:border-[#50a8f3] transition-all" placeholder="Buscar sala por nombre...">
+                <!-- Buscador y Selector de Etiquetas -->
+                <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-center">
+                    <!-- Selector de Etiquetas Dinámicas -->
+                    <div class="relative w-full sm:w-48">
+                        <select id="filter-tag-select" onchange="window.handleTagFilter(this.value)" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2.5 px-3 pr-8 text-xs text-slate-300 font-bold focus:outline-none focus:border-[#50a8f3] appearance-none transition-all cursor-pointer">
+                            <option value="all">Todas las etiquetas</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+                            <i class="fas fa-chevron-down text-[10px]"></i>
+                        </div>
+                    </div>
+
+                    <!-- Buscador de salas -->
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
+                            <i class="fas fa-search text-xs"></i>
+                        </span>
+                        <input id="search-rooms-input" oninput="window.handleSearch(this.value)" type="text" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2 px-3 pl-10 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:border-[#50a8f3] transition-all" placeholder="Buscar sala por nombre...">
+                    </div>
                 </div>
             </div>
 
@@ -296,7 +322,7 @@
                     <i class="fas fa-network-wired text-[#f1c22d]"></i> Salas de Trabajo Activas
                 </h2>
                 
-                <!-- Grid de salas -->
+                <!-- Grid de salas (Soporta Drag and Drop para reordenar) -->
                 <div id="rooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Se cargará dinámicamente -->
                 </div>
@@ -527,7 +553,7 @@
                             <div>
                                 <h3 class="font-extrabold text-violet-800 text-xs flex items-center gap-1.5">
                                     <span class="text-base">📣</span> LA PETICIÓN (THE ASK)
-                                    <div class="relative inline-block group/info text-slate-400 hover:text-violet-700 cursor-help transition-colors">
+                                    <div class="relative inline-block group/info text-slate-400 hover:text-[#50a8f3] cursor-help transition-colors">
                                         <i class="fas fa-circle-info text-[11px]"></i>
                                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/info:block bg-slate-900 text-white text-[11px] rounded-lg p-3 shadow-xl z-50 w-64 text-left font-normal leading-normal pointer-events-none whitespace-normal normal-case border border-slate-700">
                                             ¿Qué necesitas hoy para pasar al siguiente nivel? No tiene que ser solo dinero; puede ser acceso a mentores expertos, contactos con escuelas, socios de desarrollo o feedback técnico.
@@ -606,7 +632,7 @@
         </div>
     </div>
 
-    <!-- Modal para Renombrar Sala/Team -->
+    <!-- Modal para Renombrar Sala/Team y Editar Etiquetas -->
     <div id="rename-room-modal" class="hidden fixed inset-0 z-[115] bg-[#060c1d]/90 flex justify-center items-center backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 m-4 border border-blue-900/20 text-center relative">
             <button onclick="closeModal('rename-room-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
@@ -615,10 +641,32 @@
             <div class="w-12 h-12 bg-blue-50 text-[#50a8f3] rounded-full flex items-center justify-center mx-auto mb-3">
                 <i class="fas fa-edit text-xl"></i>
             </div>
-            <h3 class="text-lg font-black text-slate-900 mb-1">Editar Nombre del Team</h3>
-            <p class="text-xs text-slate-500 mb-4">Modifica el nombre identificativo de esta sala de equipo.</p>
+            <h3 class="text-lg font-black text-slate-900 mb-1">Editar Sala / Team</h3>
+            <p class="text-xs text-slate-500 mb-4">Modifica el nombre y las etiquetas de esta sala de equipo.</p>
             
-            <input id="rename-room-input" type="text" class="w-full border-2 border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:border-[#50a8f3] text-center mb-4" placeholder="Nuevo nombre del team" maxlength="30">
+            <div class="flex flex-col gap-3 mb-4 text-left">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Nombre del equipo</label>
+                    <input id="rename-room-input" type="text" class="w-full border-2 border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:border-[#50a8f3] text-sm" placeholder="Nombre del team" maxlength="30">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Etiqueta</label>
+                        <input id="rename-room-tag-input" type="text" class="w-full border-2 border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:outline-none focus:border-[#50a8f3] text-xs" placeholder="ej. Agora" maxlength="15">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Color etiqueta</label>
+                        <select id="rename-room-tag-color" class="w-full border-2 border-slate-200 rounded-xl p-2.5 text-slate-600 font-bold focus:outline-none focus:border-[#50a8f3] text-xs">
+                            <option value="blue">Celeste</option>
+                            <option value="green">Verde</option>
+                            <option value="purple">Morado</option>
+                            <option value="rose">Rosado</option>
+                            <option value="amber">Amarillo</option>
+                            <option value="teal">Turquesa</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <div class="flex justify-end gap-2.5">
                 <button onclick="closeModal('rename-room-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
@@ -654,8 +702,8 @@
             </div>
             <p id="confirm-body" class="text-slate-600 mb-6 text-sm leading-relaxed"></p>
             <div class="flex justify-end gap-3">
-                <button onclick="closeModal('confirm-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
-                <button id="confirm-action-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-md">Confirmar</button>
+                <button onclick="closeModal('confirm-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
+                <button id="confirm-action-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md">Confirmar</button>
             </div>
         </div>
     </div>
@@ -678,7 +726,7 @@
             </div>
 
             <div class="flex justify-end gap-2.5">
-                <button onclick="closeModal('add-note-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-colors">Cancelar</button>
+                <button onclick="closeModal('add-note-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
                 <button id="submit-btn" onclick="submitManualNote()" class="bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md">Guardar</button>
             </div>
         </div>
@@ -746,7 +794,10 @@
             notes: [],
             metadata: { ideaTitle: '', teamNames: '' },
             presence: [],
-            sessions: [] // Colección para guardar el histórico de tiempos de actividad
+            sessions: [], // Colección para guardar el histórico de tiempos de actividad
+            currentTab: 'active', // Pestaña de lobby por defecto
+            searchQuery: '', // Buscador por defecto
+            selectedTagFilter: 'all' // Filtro por etiqueta por defecto
         };
 
         // SUSCRIPCIONES Y HANDLERS DE FIRESTORE (Regla 1, 2, 3)
@@ -955,9 +1006,10 @@
             
             // Salas preestablecidas
             state.rooms = [
-                { id: 'room-alpha', name: 'Equipo Alpha (Ejemplo)', createdAt: Date.now(), archived: false },
-                { id: 'room-beta', name: 'Equipo Beta (Ejemplo)', createdAt: Date.now() - 3600000, archived: false },
-                { id: 'room-archived-demo', name: 'Antiguo Proyecto Archivador', createdAt: Date.now() - 86400000, archived: true }
+                { id: 'room-alpha', name: 'Equipo Alpha', createdAt: Date.now(), archived: false, tagText: 'Agora', tagColor: 'purple' },
+                { id: 'room-beta', name: 'Equipo Beta', createdAt: Date.now() - 3600000, archived: false, tagText: 'WonkUp', tagColor: 'blue' },
+                { id: 'room-gamma', name: 'Equipo Gamma', createdAt: Date.now() - 7200000, archived: false, tagText: 'Colegio', tagColor: 'green' },
+                { id: 'room-archived-demo', name: 'Antiguo Proyecto Archivador', createdAt: Date.now() - 86400000, archived: true, tagText: 'Agora', tagColor: 'purple' }
             ];
 
             // Ordenación de salas offline
@@ -1066,7 +1118,13 @@
         // CREAR UNA NUEVA SALA DESDE EL LOBBY (Sin Auto-Dirección Directa)
         window.createNewRoom = async function() {
             const roomNameInput = document.getElementById('new-room-name-input');
+            const roomTagInput = document.getElementById('new-room-tag-input');
+            const roomTagColorSelect = document.getElementById('new-room-tag-color');
+
             const name = roomNameInput.value.trim();
+            const tagText = roomTagInput.value.trim();
+            const tagColor = roomTagColorSelect.value;
+
             if (!name) {
                 showMsg("Falta información", "Por favor ingresa un nombre para identificar la sala de tu equipo.");
                 return;
@@ -1082,7 +1140,9 @@
                         name: name,
                         createdAt: Date.now(),
                         creatorId: myUserId,
-                        archived: false // Salas nuevas se inician activas
+                        archived: false, // Salas nuevas se inician activas
+                        tagText: tagText || "",
+                        tagColor: tagColor || "blue"
                     });
                 } catch (err) {
                     console.error("Error al registrar sala en base de datos:", err);
@@ -1092,22 +1152,32 @@
                     id: customRoomId,
                     name: name,
                     createdAt: Date.now(),
-                    archived: false
+                    archived: false,
+                    tagText: tagText || "",
+                    tagColor: tagColor || "blue"
                 });
                 renderRooms();
             }
 
             roomNameInput.value = '';
+            roomTagInput.value = '';
+            roomTagColorSelect.value = 'blue';
             showMsg("¡Sala Creada con Éxito!", `La sala de "${name}" ha sido creada exitosamente y ya está disponible en el Lobby para que todos los integrantes puedan entrar cuando lo deseen.`);
         };
 
-        // EDITAR / RENOMBRAR NOMBRE DE LA SALA / TEAM
+        // EDITAR / RENOMBRAR NOMBRE DE LA SALA / TEAM Y SUS ETIQUETAS
         window.openRenameRoomModal = function(targetRoomId) {
             const currentRoom = state.rooms.find(r => r.id === targetRoomId);
             if (!currentRoom) return;
 
             const input = document.getElementById('rename-room-input');
             input.value = currentRoom.name;
+
+            const tagInput = document.getElementById('rename-room-tag-input');
+            tagInput.value = currentRoom.tagText || "";
+
+            const tagColorSelect = document.getElementById('rename-room-tag-color');
+            tagColorSelect.value = currentRoom.tagColor || "blue";
 
             const confirmBtn = document.getElementById('rename-confirm-btn');
             
@@ -1117,6 +1187,9 @@
             
             newConfirmBtn.addEventListener('click', async () => {
                 const newName = input.value.trim();
+                const newTagText = tagInput.value.trim();
+                const newTagColor = tagColorSelect.value;
+
                 if (!newName) {
                     showMsg("Error", "El nombre del team no puede estar vacío.");
                     return;
@@ -1124,9 +1197,15 @@
                 
                 if (useFirebase) {
                     const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', targetRoomId);
-                    await updateDoc(roomDocRef, { name: newName });
+                    await updateDoc(roomDocRef, { 
+                        name: newName,
+                        tagText: newTagText,
+                        tagColor: newTagColor
+                    });
                 } else {
                     currentRoom.name = newName;
+                    currentRoom.tagText = newTagText;
+                    currentRoom.tagColor = newTagColor;
                     
                     // Persistir el orden y estado modificado de nombres offline
                     const roomIdsOrder = state.rooms.map(r => r.id);
@@ -1365,12 +1444,12 @@
             const titleLabel = document.getElementById('lobby-section-title');
 
             if (tabName === 'active') {
-                activeBtn.className = "flex-grow md:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white";
-                archivedBtn.className = "flex-grow md:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white";
+                activeBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white";
+                archivedBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white";
                 titleLabel.innerHTML = `<i class="fas fa-network-wired text-[#f1c22d]"></i> Salas de Trabajo Activas`;
             } else {
-                activeBtn.className = "flex-grow md:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white";
-                archivedBtn.className = "flex-grow md:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white";
+                activeBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white";
+                archivedBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white";
                 titleLabel.innerHTML = `<i class="fas fa-archive text-[#50a8f3]"></i> Historial de Salas Archivadas`;
             }
             renderRooms();
@@ -1378,6 +1457,11 @@
 
         window.handleSearch = function(query) {
             state.searchQuery = query.toLowerCase().trim();
+            renderRooms();
+        };
+
+        window.handleTagFilter = function(tagValue) {
+            state.selectedTagFilter = tagValue;
             renderRooms();
         };
 
@@ -1443,11 +1527,41 @@
             document.getElementById('count-active').innerText = totalActiveCount;
             document.getElementById('count-archived').innerText = totalArchivedCount;
 
-            // Filtrar salas según la pestaña activa
+            // Actualizar el selector de etiquetas dinámicamente sin perder la selección actual
+            const tagSelect = document.getElementById('filter-tag-select');
+            if (tagSelect) {
+                const previousSelection = state.selectedTagFilter || 'all';
+                // Obtener todas las etiquetas únicas presentes en el catálogo
+                const uniqueTags = [...new Set(state.rooms.map(r => r.tagText).filter(Boolean))];
+                
+                let selectOptionsHtml = '<option value="all">Todas las etiquetas</option>';
+                uniqueTags.forEach(t => {
+                    selectOptionsHtml += `<option value="${t}">Etiqueta: ${t}</option>`;
+                });
+                tagSelect.innerHTML = selectOptionsHtml;
+                
+                // Si el tag previamente seleccionado ya no existe en el catálogo, resetear a 'all'
+                if (uniqueTags.includes(previousSelection) || previousSelection === 'all') {
+                    tagSelect.value = previousSelection;
+                    state.selectedTagFilter = previousSelection;
+                } else {
+                    tagSelect.value = 'all';
+                    state.selectedTagFilter = 'all';
+                }
+            }
+
+            // Filtrar salas según la pestaña activa (Activas vs Archivadas)
             let filteredRooms = state.rooms.filter(room => {
                 const isArchived = room.archived === true;
                 return state.currentTab === 'active' ? !isArchived : isArchived;
             });
+
+            // Filtrar por etiqueta si hay una seleccionada
+            if (state.selectedTagFilter && state.selectedTagFilter !== 'all') {
+                filteredRooms = filteredRooms.filter(room => 
+                    room.tagText && room.tagText.toLowerCase() === state.selectedTagFilter.toLowerCase()
+                );
+            }
 
             // Filtrar salas según la consulta de búsqueda si la hay
             if (state.searchQuery) {
@@ -1462,6 +1576,9 @@
                 if (state.searchQuery) {
                     document.getElementById('empty-title-text').innerText = "Sin coincidencias de búsqueda";
                     document.getElementById('empty-desc-text').innerText = `No encontramos ninguna sala que coincida con "${state.searchQuery}".`;
+                } else if (state.selectedTagFilter !== 'all') {
+                    document.getElementById('empty-title-text').innerText = "Sin coincidencias de etiqueta";
+                    document.getElementById('empty-desc-text').innerText = `No hay salas con la etiqueta "${state.selectedTagFilter}" en esta pestaña.`;
                 } else {
                     document.getElementById('empty-title-text').innerText = state.currentTab === 'active' ? "No hay salas creadas aún." : "No tienes salas archivadas.";
                     document.getElementById('empty-desc-text').innerText = state.currentTab === 'active' ? "Usa el panel superior para crear la primera sala de tu equipo." : "Archiva salas de trabajo activas para limpiar tu pantalla principal.";
@@ -1470,6 +1587,16 @@
             } else {
                 emptyState.classList.add('hidden');
             }
+
+            // Paleta de clases de colores de etiquetas para diseño tailwind dinámico
+            const tagColorMap = {
+                blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                green: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                purple: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+                rose: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+                amber: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                teal: "bg-teal-500/10 text-teal-400 border-teal-500/20"
+            };
 
             filteredRooms.forEach(room => {
                 // Filtrar notas y presencia en memoria (Regla 2)
@@ -1485,6 +1612,14 @@
                         </span>
                       `).join('')
                     : '<span class="text-xs text-slate-500 italic">Nadie en línea en este momento</span>';
+
+                // Renderizar el tag en la tarjeta
+                const tagClass = tagColorMap[room.tagColor || 'blue'];
+                const tagHtml = room.tagText ? `
+                    <span class="inline-flex items-center gap-1 ${tagClass} border text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                        ${room.tagText}
+                    </span>
+                ` : '';
 
                 const card = document.createElement('div');
                 
@@ -1538,14 +1673,19 @@
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex items-center gap-2 overflow-hidden flex-grow">
                                 <i class="fas fa-grip-vertical text-slate-600 text-xs cursor-grab active:cursor-grabbing hover:text-slate-400"></i>
-                                <h3 class="text-white font-bold text-base leading-snug truncate ${room.archived ? 'text-slate-400 line-through' : ''}" title="${room.name}">${room.name}</h3>
+                                <div class="flex flex-col gap-1 overflow-hidden">
+                                    <h3 class="text-white font-bold text-base leading-snug truncate ${room.archived ? 'text-slate-400 line-through' : ''}" title="${room.name}">${room.name}</h3>
+                                    <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                        ${tagHtml}
+                                    </div>
+                                </div>
                                 ${!room.archived ? `
-                                <button onclick="window.openRenameRoomModal('${room.id}')" class="text-slate-500 hover:text-[#50a8f3] transition-colors p-1 no-drag" title="Editar nombre del team">
+                                <button onclick="window.openRenameRoomModal('${room.id}')" class="text-slate-500 hover:text-[#50a8f3] transition-colors p-1 no-drag self-start" title="Editar nombre de la sala o etiquetas">
                                     <i class="fas fa-pencil-alt text-[10px]"></i>
                                 </button>
                                 ` : ''}
                             </div>
-                            <span class="text-[9px] font-mono font-bold bg-blue-950 border border-blue-900/60 text-[#50a8f3] px-2 py-0.5 rounded uppercase tracking-wider">#${room.id.split('-')[1] || room.id}</span>
+                            <span class="text-[9px] font-mono font-bold bg-blue-950 border border-blue-900/60 text-[#50a8f3] px-2 py-0.5 rounded uppercase tracking-wider shrink-0">#${room.id.split('-')[1] || room.id}</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-1">ID: ${room.id}</p>
                         
@@ -1695,7 +1835,7 @@
                 }
             }
 
-            // Inicializar sincronización de Firebase y navegación
+            // Inicializar Sincronización de Firebase y navegación
             setupFirebaseSync();
             window.handleNavigationState();
         };
@@ -1707,7 +1847,7 @@
             }
         });
 
-        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas)
+        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas con limpieza de auditorías)
         window.handleNavigationState = function() {
             // Verificar si el nombre está registrado primero
             if (!myName) {
@@ -1725,7 +1865,16 @@
             const pdfExportBtn = document.getElementById('pdf-export-btn');
 
             if (!hash || hash === 'lobby' || hash === '') {
-                // VISTA DEL LOBBY
+                // VISTA DEL LOBBY (Registrar salida del integrante)
+                if (window.currentRoomSessionId) {
+                    window.writeSessionActivity(window.currentRoomSessionId, 'exit');
+                    window.currentRoomSessionId = null;
+                }
+                if (window.currentSessionInterval) {
+                    clearInterval(window.currentSessionInterval);
+                    window.currentSessionInterval = null;
+                }
+
                 roomId = null;
                 lobbyView.classList.remove('hidden');
                 canvasView.classList.add('hidden');
@@ -1754,7 +1903,7 @@
                 const currentRoom = state.rooms.find(r => r.id === roomId);
                 document.getElementById('canvas-room-badge').innerText = currentRoom ? `Sala: ${currentRoom.name}` : `Sala: ${roomId}`;
 
-                // Iniciar sincronización de datos de la sala
+                // Iniciar Sincronización de datos de la sala
                 window.syncRoomCanvasData();
             }
         };
