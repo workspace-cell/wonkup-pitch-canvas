@@ -323,7 +323,12 @@
                 <div class="text-center md:text-left flex flex-col justify-center min-w-[150px]">
                     <div class="text-2xl font-black text-[#50a8f3] tracking-tight leading-none">PITCH</div>
                     <div class="text-2xl font-black text-[#f1c22d] tracking-tight leading-none mt-1">CANVAS</div>
-                    <span id="canvas-room-badge" class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Sala activa</span>
+                    <div class="flex items-center gap-1.5 mt-1 justify-center md:justify-start">
+                        <span id="canvas-room-badge" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sala activa</span>
+                        <button onclick="window.openRenameRoomModal(roomId)" class="text-slate-400 hover:text-[#50a8f3] transition-colors p-1 no-print" title="Editar nombre de la sala / team">
+                            <i class="fas fa-pencil-alt text-[9px]"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Inputs Centrales Simplificados -->
@@ -543,6 +548,9 @@
         </div>
     </main>
 
+    <!-- Contenedor oculto en el DOM para la generación de reportes en PDF -->
+    <div id="report-pdf-wrapper" class="absolute -left-[9999px] top-0 no-print"></div>
+
     <!-- MODALES DE INTERFAZ (UI) -->
     
     <!-- Modal Nombre Colaborador (Obligatorio al iniciar para saber quién es quién) -->
@@ -594,6 +602,27 @@
 
             <div class="flex justify-end gap-2.5">
                 <button onclick="closeModal('share-modal')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Renombrar Sala/Team -->
+    <div id="rename-room-modal" class="hidden fixed inset-0 z-[115] bg-[#060c1d]/90 flex justify-center items-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 m-4 border border-blue-900/20 text-center relative">
+            <button onclick="closeModal('rename-room-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="w-12 h-12 bg-blue-50 text-[#50a8f3] rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-edit text-xl"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 mb-1">Editar Nombre del Team</h3>
+            <p class="text-xs text-slate-500 mb-4">Modifica el nombre identificativo de esta sala de equipo.</p>
+            
+            <input id="rename-room-input" type="text" class="w-full border-2 border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:border-[#50a8f3] text-center mb-4" placeholder="Nuevo nombre del team" maxlength="30">
+
+            <div class="flex justify-end gap-2.5">
+                <button onclick="closeModal('rename-room-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
+                <button id="rename-confirm-btn" class="bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md">Guardar</button>
             </div>
         </div>
     </div>
@@ -717,9 +746,7 @@
             notes: [],
             metadata: { ideaTitle: '', teamNames: '' },
             presence: [],
-            sessions: [], // Colección para guardar el histórico de tiempos de actividad
-            currentTab: 'active', // Pestaña de lobby por defecto
-            searchQuery: '' // Buscador por defecto
+            sessions: [] // Colección para guardar el histórico de tiempos de actividad
         };
 
         // SUSCRIPCIONES Y HANDLERS DE FIRESTORE (Regla 1, 2, 3)
@@ -768,6 +795,13 @@
                         return (b.createdAt || 0) - (a.createdAt || 0);
                     });
                     renderRooms();
+                    // Si estamos actualmente en el lienzo de trabajo, actualizar el badge de nombre de sala de forma proactiva
+                    if (roomId) {
+                        const currentRoom = state.rooms.find(r => r.id === roomId);
+                        if (currentRoom) {
+                            document.getElementById('canvas-room-badge').innerText = `Sala: ${currentRoom.name}`;
+                        }
+                    }
                 }, (error) => {
                     console.error("Error al sincronizar salas:", error);
                 });
@@ -1065,6 +1099,51 @@
 
             roomNameInput.value = '';
             showMsg("¡Sala Creada con Éxito!", `La sala de "${name}" ha sido creada exitosamente y ya está disponible en el Lobby para que todos los integrantes puedan entrar cuando lo deseen.`);
+        };
+
+        // EDITAR / RENOMBRAR NOMBRE DE LA SALA / TEAM
+        window.openRenameRoomModal = function(targetRoomId) {
+            const currentRoom = state.rooms.find(r => r.id === targetRoomId);
+            if (!currentRoom) return;
+
+            const input = document.getElementById('rename-room-input');
+            input.value = currentRoom.name;
+
+            const confirmBtn = document.getElementById('rename-confirm-btn');
+            
+            // Clonación limpia de eventos
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            newConfirmBtn.addEventListener('click', async () => {
+                const newName = input.value.trim();
+                if (!newName) {
+                    showMsg("Error", "El nombre del team no puede estar vacío.");
+                    return;
+                }
+                
+                if (useFirebase) {
+                    const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', targetRoomId);
+                    await updateDoc(roomDocRef, { name: newName });
+                } else {
+                    currentRoom.name = newName;
+                    
+                    // Persistir el orden y estado modificado de nombres offline
+                    const roomIdsOrder = state.rooms.map(r => r.id);
+                    localStorage.setItem('wonkup_rooms_order', JSON.stringify(roomIdsOrder));
+                    renderRooms();
+                }
+                
+                // Actualizar badge si nos encontramos actualmente dentro de la misma sala
+                if (roomId === targetRoomId) {
+                    document.getElementById('canvas-room-badge').innerText = `Sala: ${newName}`;
+                }
+                
+                closeModal('rename-room-modal');
+            });
+
+            openModal('rename-room-modal');
+            setTimeout(() => input.focus(), 100);
         };
 
         // ACCIÓN: ARCHIVAR UNA SALA DE TRABAJO
@@ -1457,9 +1536,14 @@
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-start gap-3">
-                            <div class="flex items-center gap-2 overflow-hidden">
+                            <div class="flex items-center gap-2 overflow-hidden flex-grow">
                                 <i class="fas fa-grip-vertical text-slate-600 text-xs cursor-grab active:cursor-grabbing hover:text-slate-400"></i>
                                 <h3 class="text-white font-bold text-base leading-snug truncate ${room.archived ? 'text-slate-400 line-through' : ''}" title="${room.name}">${room.name}</h3>
+                                ${!room.archived ? `
+                                <button onclick="window.openRenameRoomModal('${room.id}')" class="text-slate-500 hover:text-[#50a8f3] transition-colors p-1 no-drag" title="Editar nombre del team">
+                                    <i class="fas fa-pencil-alt text-[10px]"></i>
+                                </button>
+                                ` : ''}
                             </div>
                             <span class="text-[9px] font-mono font-bold bg-blue-950 border border-blue-900/60 text-[#50a8f3] px-2 py-0.5 rounded uppercase tracking-wider">#${room.id.split('-')[1] || room.id}</span>
                         </div>
