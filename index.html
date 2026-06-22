@@ -522,6 +522,9 @@
         </div>
     </main>
 
+    <!-- Contenedor oculto en el DOM para la generación de reportes en PDF -->
+    <div id="report-pdf-wrapper" class="absolute -left-[9999px] top-0 no-print"></div>
+
     <!-- MODALES DE INTERFAZ (UI) -->
     
     <!-- Modal Nombre Colaborador (Obligatorio al iniciar para saber quién es quién) -->
@@ -545,7 +548,7 @@
         </div>
     </div>
 
-    <!-- Modal de Alertas Personalizado -->
+    <!-- Modal de Alertas Personalizado (Usa modales estilizados en vez de alerts bloqueantes de navegador) -->
     <div id="msg-modal" class="hidden fixed inset-0 z-[110] bg-[#060c1d]/80 flex justify-center items-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 m-4 border border-slate-100">
             <div class="flex items-center gap-3 mb-3">
@@ -646,7 +649,8 @@
             rooms: [],
             notes: [],
             metadata: { ideaTitle: '', teamNames: '' },
-            presence: []
+            presence: [],
+            sessions: [] // Colección para guardar el histórico de tiempos de actividad
         };
 
         // SUSCRIPCIONES Y HANDLERS DE FIRESTORE (Regla 1, 2, 3)
@@ -683,6 +687,7 @@
                 const roomsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
                 const notesColRef = collection(db, 'artifacts', appId, 'public', 'data', 'notes');
                 const presenceColRef = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
+                const sessionsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions');
 
                 // 1. Sincronizar el catálogo de salas
                 onSnapshot(roomsColRef, (snapshot) => {
@@ -699,7 +704,6 @@
                     if (roomId) {
                         renderNotes();
                     }
-                    // Actualizar indicadores del Lobby por conteo de notas o miembros
                     renderRooms();
                 }, (error) => {
                     console.error("Error al sincronizar notas:", error);
@@ -712,6 +716,13 @@
                     state.presence = allPresence.filter(p => p.lastActive > cutoff);
                     renderPresence();
                     renderRooms(); // Recalcular presencia en las tarjetas de sala del lobby
+                });
+
+                // 4. Sincronización del histórico de sesiones de actividad (REGLA 2)
+                onSnapshot(sessionsColRef, (snapshot) => {
+                    state.sessions = snapshot.docs.map(doc => doc.data());
+                }, (error) => {
+                    console.error("Error al sincronizar sesiones:", error);
                 });
             });
         }
@@ -732,10 +743,68 @@
             }
         }
 
+        // CONTROLADOR DE ESCRITURA DE SESIÓN DE ACTIVIDAD
+        window.writeSessionActivity = async function(sessId, type) {
+            if (!roomId) return;
+            const now = Date.now();
+            const duration = Math.round((now - window.currentRoomSessionStartTime) / 1000); // en segundos
+
+            const formatDuration = (sec) => {
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                const s = sec % 60;
+                return [h, m, s].map(v => v < 10 ? "0" + v : v).join(":");
+            };
+
+            const sessionData = {
+                id: sessId,
+                roomId: roomId,
+                roomName: state.rooms.find(r => r.id === roomId)?.name || roomId,
+                userId: myUserId,
+                userName: myName || 'Anónimo',
+                loginTime: window.currentRoomSessionStartTime,
+                lastActive: now,
+                activeDuration: formatDuration(duration),
+                activeDurationSeconds: duration,
+                exitTime: type === 'exit' ? now : null,
+                status: type === 'exit' ? 'completado' : 'activo'
+            };
+
+            if (useFirebase) {
+                const sessDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessId);
+                await setDoc(sessDocRef, sessionData, { merge: true });
+            } else {
+                // Actualización en local mock
+                const idx = state.sessions.findIndex(s => s.id === sessId);
+                if (idx !== -1) {
+                    state.sessions[idx] = sessionData;
+                } else {
+                    state.sessions.push(sessionData);
+                }
+                if (!roomId) {
+                    renderRooms();
+                }
+            }
+        };
+
         // Suscribirse a una sala específica de forma aislada
         let metadataUnsubscribe = null;
         window.syncRoomCanvasData = function() {
             if (!roomId) return;
+
+            // Iniciar sesión de auditoría temporal para este integrante
+            let sessionStartTime = Date.now();
+            let currentSessionId = `sess_${roomId}_${myUserId}_${sessionStartTime}`;
+            
+            window.currentRoomSessionId = currentSessionId;
+            window.currentRoomSessionStartTime = sessionStartTime;
+
+            window.writeSessionActivity(currentSessionId, 'start');
+
+            if (window.currentSessionInterval) clearInterval(window.currentSessionInterval);
+            window.currentSessionInterval = setInterval(() => {
+                window.writeSessionActivity(currentSessionId, 'heartbeat');
+            }, 10000);
 
             // Registrar presencia inmediata
             updatePresenceInCloud();
@@ -785,13 +854,20 @@
             state.notes = [
                 { id: 'note-1', text: '¿Sabías que el 80% del plástico que botan las escuelas puede convertirse en filamento 3D?', color: 'bg-yellow-200', blockId: 'gancho', roomId: 'room-alpha' },
                 { id: 'note-2', text: 'El auge de la impresión 3D educativa y las nuevas normas de reciclaje escolar en el 2026.', color: 'bg-yellow-200', blockId: 'timing', roomId: 'room-alpha' },
-                { id: 'note-3', text: 'Trituradora escolar EcoFilamento: instantánea y segura para niños.', color: 'bg-blue-200', blockId: 'solucion', roomId: 'room-alpha' }
+                { id: 'note-3', text: 'Trituradora escolar EcoFilamento: interactiva y segura para niños.', color: 'bg-blue-200', blockId: 'solucion', roomId: 'room-alpha' }
             ];
             
             state.presence = [
                 { userId: myUserId, userName: myName || 'Tú', roomId: 'room-alpha', lastActive: Date.now() },
                 { userId: 'mock-1', userName: 'Diana', roomId: 'room-alpha', lastActive: Date.now() },
                 { userId: 'mock-2', userName: 'Andrés', roomId: 'room-beta', lastActive: Date.now() }
+            ];
+
+            // Histórico de sesiones preestablecido para demostración de reportes
+            state.sessions = [
+                { id: 'sess_mock1', roomId: 'room-alpha', userName: 'Diana', loginTime: Date.now() - 3600000, lastActive: Date.now() - 1200000, activeDuration: "00:40:00", exitTime: Date.now() - 1200000, status: 'completado' },
+                { id: 'sess_mock2', roomId: 'room-alpha', userName: 'Andrés', loginTime: Date.now() - 1800000, lastActive: Date.now(), activeDuration: "00:30:00", exitTime: null, status: 'activo' },
+                { id: 'sess_mock3', roomId: 'room-beta', userName: 'Sofía', loginTime: Date.now() - 7200000, lastActive: Date.now() - 5400000, activeDuration: "00:30:00", exitTime: Date.now() - 5400000, status: 'completado' }
             ];
 
             renderRooms();
@@ -860,7 +936,7 @@
             }
         };
 
-        // CREAR UNA NUEVA SALA DESDE EL LOBBY
+        // CREAR UNA NUEVA SALA DESDE EL LOBBY (Sin Auto-Dirección Directa)
         window.createNewRoom = async function() {
             const roomNameInput = document.getElementById('new-room-name-input');
             const name = roomNameInput.value.trim();
@@ -893,8 +969,132 @@
             }
 
             roomNameInput.value = '';
-            // Redireccionar al hash de la nueva sala recién creada
-            window.location.hash = customRoomId;
+            showMsg("¡Sala Creada con Éxito!", `La sala de "${name}" ha sido creada exitosamente y ya está disponible en el Lobby para que todos los integrantes puedan entrar cuando lo deseen.`);
+        };
+
+        // EXPORTACIÓN DE REPORTES EN CSV (Compatible directamente con Excel)
+        window.exportSessionsToCSV = function(roomFilterId) {
+            const targetRoom = state.rooms.find(r => r.id === roomFilterId);
+            const roomName = targetRoom ? targetRoom.name : roomFilterId;
+            const roomSessions = state.sessions.filter(s => s.roomId === roomFilterId);
+            
+            // Carácter BOM de UTF-8 para forzar el reconocimiento correcto de tildes y eñes en Excel
+            let csvContent = "\uFEFF"; 
+            csvContent += "WONKUP - REPORTE DE ACTIVIDAD Y ASISTENCIA DE SALA\n";
+            csvContent += "Sala de Trabajo: " + roomName + " (" + roomFilterId + ")\n";
+            csvContent += "Fecha del Reporte: " + new Date().toLocaleString() + "\n\n";
+            csvContent += "Integrante,Fecha,Hora de Ingreso,Hora de Salida,Tiempo de Actividad,Estado\n";
+
+            roomSessions.forEach(s => {
+                const dateStr = new Date(s.loginTime).toLocaleDateString();
+                const loginTimeStr = new Date(s.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const exitTimeStr = s.exitTime ? new Date(s.exitTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "En línea";
+                const statusStr = s.status === 'activo' ? 'En sesión' : 'Completado';
+                csvContent += `"${s.userName}","${dateStr}","${loginTimeStr}","${exitTimeStr}","${s.activeDuration}","${statusStr}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Reporte_Actividad_${roomName.replace(/\s+/g, '_')}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // EXPORTACIÓN DE REPORTES EN PDF CON DISEÑO MAQUETADO DE WONKUP
+        window.exportSessionsToPDF = function(roomFilterId) {
+            const targetRoom = state.rooms.find(r => r.id === roomFilterId);
+            const roomName = targetRoom ? targetRoom.name : roomFilterId;
+            const roomSessions = state.sessions.filter(s => s.roomId === roomFilterId);
+
+            const reportContainer = document.getElementById('report-pdf-wrapper');
+            
+            let tableRows = '';
+            if (roomSessions.length === 0) {
+                tableRows = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">No hay registros de asistencia aún para esta sala.</td></tr>`;
+            } else {
+                roomSessions.forEach(s => {
+                    const dateStr = new Date(s.loginTime).toLocaleDateString();
+                    const loginTimeStr = new Date(s.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const exitTimeStr = s.exitTime ? new Date(s.exitTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "En sesión";
+                    const statusClass = s.status === 'activo' ? 'text-emerald-600 font-bold' : 'text-slate-500';
+                    tableRows += `
+                        <tr class="border-b border-slate-100 text-sm">
+                            <td class="py-3 font-semibold text-slate-800">${s.userName}</td>
+                            <td class="py-3 text-slate-600">${dateStr}</td>
+                            <td class="py-3 text-slate-600">${loginTimeStr}</td>
+                            <td class="py-3 text-slate-600">${exitTimeStr}</td>
+                            <td class="py-3 font-mono text-indigo-600 font-bold">${s.activeDuration}</td>
+                            <td class="py-3 ${statusClass}">${s.status === 'activo' ? 'En línea' : 'Completado'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            reportContainer.innerHTML = `
+                <div class="p-8 bg-white text-slate-800 font-sans" style="width: 800px; min-height: 500px;">
+                    <div class="flex justify-between items-center border-b-2 border-slate-200 pb-6 mb-6">
+                        <div>
+                            <h1 class="text-2xl font-black text-slate-900 tracking-tight">WonkUp - Reporte de Asistencia</h1>
+                            <p class="text-xs text-slate-500 mt-1">Monitoreo de participación y tiempo de actividad del equipo</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs bg-indigo-50 text-indigo-600 font-bold px-3 py-1 rounded-full uppercase tracking-wider">Lobby Admin</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sala de Trabajo</p>
+                            <p class="text-sm font-bold text-slate-800">${roomName}</p>
+                            <p class="text-[11px] text-slate-500 mt-0.5">ID: ${roomFilterId}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Reporte</p>
+                            <p class="text-sm font-bold text-slate-800">${new Date().toLocaleDateString()}</p>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Hora: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b-2 border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="pb-3">Integrante</th>
+                                    <th class="pb-3">Fecha</th>
+                                    <th class="pb-3">Hora Ingreso</th>
+                                    <th class="pb-3">Hora Salida</th>
+                                    <th class="pb-3">Duración Activa</th>
+                                    <th class="pb-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-auto pt-8 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400 font-medium">
+                        <span>Generado automáticamente por WonkUp Pitch Canvas</span>
+                        <span>Página 1 de 1</span>
+                    </div>
+                </div>
+            `;
+
+            const opt = {
+                margin:       10,
+                filename:     `Reporte_Asistencia_${roomName.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(reportContainer).save().then(() => {
+                reportContainer.innerHTML = ''; 
+            });
         };
 
         // RENDERIZADO DEL CATÁLOGO DE SALAS (LOBBY DE ADMIN)
@@ -911,9 +1111,19 @@
             }
 
             state.rooms.forEach(room => {
-                // Calcular estadísticas de sala en base al estado general filtrado en JS (Regla 2)
+                // Filtrar notas y presencia en memoria (Regla 2)
                 const roomNotesCount = state.notes.filter(n => n.roomId === room.id).length;
-                const roomActiveCollabs = state.presence.filter(p => p.roomId === room.id).length;
+                const roomActiveCollabs = state.presence.filter(p => p.roomId === room.id);
+
+                // Mapear nombres de integrantes en línea de la sala
+                const activeNamesHtml = roomActiveCollabs.length > 0
+                    ? roomActiveCollabs.map(p => `
+                        <span class="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            ${p.userName}
+                        </span>
+                      `).join('')
+                    : '<span class="text-xs text-slate-500 italic">Nadie en línea en este momento</span>';
 
                 const card = document.createElement('div');
                 card.className = "bg-[#060c1d] border border-blue-950 hover:border-blue-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all duration-300 hover:-translate-y-1";
@@ -926,21 +1136,39 @@
                         </div>
                         <p class="text-xs text-slate-500 mt-1">ID: ${room.id}</p>
                         
-                        <div class="flex gap-4 mt-5 mb-6">
+                        <div class="flex gap-4 mt-4 mb-2">
                             <div class="flex items-center gap-1.5 text-xs text-slate-400">
                                 <i class="fas fa-sticky-note text-[#f1c22d]"></i>
                                 <span class="font-bold text-white">${roomNotesCount}</span> notas
                             </div>
                             <div class="flex items-center gap-1.5 text-xs text-slate-400">
                                 <i class="fas fa-users text-[#50a8f3]"></i>
-                                <span class="font-bold text-white">${roomActiveCollabs}</span> activos
+                                <span class="font-bold text-white">${roomActiveCollabs.length}</span> activos
+                            </div>
+                        </div>
+
+                        <!-- Bloque de Integrantes Conectados Directamente en la Tarjeta -->
+                        <div class="mt-3 border-t border-blue-950/40 pt-3 mb-4">
+                            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">En línea ahora:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${activeNamesHtml}
                             </div>
                         </div>
                     </div>
-                    <div class="flex gap-2">
-                        <a href="#${room.id}" class="flex-grow bg-blue-950/80 hover:bg-blue-900 border border-blue-900/30 text-white font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5">
+
+                    <!-- Panel de Controles e Informes en la Base de la Tarjeta -->
+                    <div class="flex flex-col gap-2 pt-3 border-t border-blue-950/40">
+                        <a href="#${room.id}" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5">
                             <i class="fas fa-sign-in-alt"></i> Entrar a colaborar
                         </a>
+                        <div class="grid grid-cols-2 gap-1.5 mt-1">
+                            <button onclick="window.exportSessionsToCSV('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 border border-blue-900/30 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1" title="Exportar reporte Excel de actividad">
+                                <i class="fas fa-file-excel text-emerald-500"></i> Reporte Excel
+                            </button>
+                            <button onclick="window.exportSessionsToPDF('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 border border-blue-900/30 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1" title="Descargar asistencia en PDF">
+                                <i class="fas fa-file-pdf text-red-500"></i> Reporte PDF
+                            </button>
+                        </div>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -1063,7 +1291,14 @@
             window.handleNavigationState();
         };
 
-        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas)
+        // REGISTRAR SALIDA ANTES DE CERRAR LA VENTANA
+        window.addEventListener('beforeunload', () => {
+            if (window.currentRoomSessionId) {
+                window.writeSessionActivity(window.currentRoomSessionId, 'exit');
+            }
+        });
+
+        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas con limpieza de auditorías)
         window.handleNavigationState = function() {
             // Verificar si el nombre está registrado primero
             if (!myName) {
@@ -1081,7 +1316,16 @@
             const pdfExportBtn = document.getElementById('pdf-export-btn');
 
             if (!hash || hash === 'lobby' || hash === '') {
-                // VISTA DEL LOBBY
+                // VISTA DEL LOBBY (Registrar salida del integrante)
+                if (window.currentRoomSessionId) {
+                    window.writeSessionActivity(window.currentRoomSessionId, 'exit');
+                    window.currentRoomSessionId = null;
+                }
+                if (window.currentSessionInterval) {
+                    clearInterval(window.currentSessionInterval);
+                    window.currentSessionInterval = null;
+                }
+
                 roomId = null;
                 lobbyView.classList.remove('hidden');
                 canvasView.classList.add('hidden');
