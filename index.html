@@ -173,16 +173,18 @@
     <!-- BARRA SUPERIOR (No se imprime) -->
     <header class="bg-[#060c1d] border-b border-blue-950 px-6 py-3 flex justify-between items-center z-50 flex-shrink-0 no-print flex-wrap gap-3">
         <div class="flex items-center gap-3">
-            <!-- Logotipo vectorial integrado de WonkUp -->
+            <!-- Logotipo real cargado desde tu GitHub (Con respaldo SVG por si acaso) -->
             <div class="flex items-center gap-2">
-                <svg class="h-8 w-auto text-[#50a8f3]" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M45 20 L25 80 L10 20 L0 20 L20 100 L35 100 L55 35 L75 100 L90 100 L110 20 L100 20 L85 80 L65 20 Z" fill="#50a8f3"/>
-                    <circle cx="155" cy="60" r="35" stroke="#f1c22d" stroke-width="14"/>
-                    <path d="M210 20 L210 100 L225 100 L225 65 L260 100 L280 100 L240 55 L275 20 L255 20 L225 50 L225 20 Z" fill="#50a8f3"/>
-                    <path d="M300 20 L300 80 Q300 100 330 100 Q360 100 360 80 L360 20 L345 20 L345 80 Q345 88 330 88 Q315 88 315 80 L315 20 Z" fill="#f1c22d"/>
-                    <path d="M380 20 L380 100 L395 100 L395 70 L425 70 Q450 70 450 45 Q450 20 425 20 Z M395 35 L420 35 Q435 35 435 45 Q435 55 420 55 L395 55 Z" fill="#50a8f3"/>
-                </svg>
-                <span class="hidden sm:inline text-xs bg-blue-950/60 text-blue-300 font-semibold px-2.5 py-1 rounded-full border border-blue-900/30">Cocreación Activa</span>
+                <img src="logo_wonkup.png" alt="WonkUp" class="h-8 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('header-svg-fallback').classList.remove('hidden')">
+                <div id="header-svg-fallback" class="hidden">
+                    <svg class="h-8 w-auto text-[#50a8f3]" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M45 20 L25 80 L10 20 L0 20 L20 100 L35 100 L55 35 L75 100 L90 100 L110 20 L100 20 L85 80 L65 20 Z" fill="#50a8f3"/>
+                        <circle cx="155" cy="60" r="35" stroke="#f1c22d" stroke-width="14"/>
+                        <path d="M210 20 L210 100 L225 100 L225 65 L260 100 L280 100 L240 55 L275 20 L255 20 L225 50 L225 20 Z" fill="#50a8f3"/>
+                        <path d="M300 20 L300 80 Q300 100 330 100 Q360 100 360 80 L360 20 L345 20 L345 80 Q345 88 330 88 Q315 88 315 80 L315 20 Z" fill="#f1c22d"/>
+                        <path d="M380 20 L380 100 L395 100 L395 70 L425 70 Q450 70 450 45 Q450 20 425 20 Z M395 35 L420 35 Q435 35 435 45 Q435 55 420 55 L395 55 Z" fill="#50a8f3"/>
+                    </svg>
+                </div>
             </div>
         </div>
 
@@ -243,13 +245,16 @@
 
                 <!-- Logotipo para el PDF (Sin el texto "Canvas Oficial" abajo) -->
                 <div class="flex flex-col items-end lg:w-1/5 flex-shrink-0">
-                    <svg class="h-8 w-auto text-[#50a8f3]" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M45 20 L25 80 L10 20 L0 20 L20 100 L35 100 L55 35 L75 100 L90 100 L110 20 L100 20 L85 80 L65 20 Z" fill="#50a8f3"/>
-                        <circle cx="155" cy="60" r="35" stroke="#f1c22d" stroke-width="14"/>
-                        <path d="M210 20 L210 100 L225 100 L225 65 L260 100 L280 100 L240 55 L275 20 L255 20 L225 50 L225 20 Z" fill="#50a8f3"/>
-                        <path d="M300 20 L300 80 Q300 100 330 100 Q360 100 360 80 L360 20 L345 20 L345 80 Q345 88 330 88 Q315 88 315 80 L315 20 Z" fill="#f1c22d"/>
-                        <path d="M380 20 L380 100 L395 100 L395 70 L425 70 Q450 70 450 45 Q450 20 425 20 Z M395 35 L420 35 Q435 35 435 45 Q435 55 420 55 L395 55 Z" fill="#50a8f3"/>
-                    </svg>
+                    <img src="logo_wonkup.png" alt="WonkUp" class="h-8 w-auto object-contain animate-fadeIn" onerror="this.style.display='none'; document.getElementById('pdf-svg-fallback').classList.remove('hidden')">
+                    <div id="pdf-svg-fallback" class="hidden">
+                        <svg class="h-8 w-auto text-[#50a8f3]" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M45 20 L25 80 L10 20 L0 20 L20 100 L35 100 L55 35 L75 100 L90 100 L110 20 L100 20 L85 80 L65 20 Z" fill="#50a8f3"/>
+                            <circle cx="155" cy="60" r="35" stroke="#f1c22d" stroke-width="14"/>
+                            <path d="M210 20 L210 100 L225 100 L225 65 L260 100 L280 100 L240 55 L275 20 L255 20 L225 50 L225 20 Z" fill="#50a8f3"/>
+                            <path d="M300 20 L300 80 Q300 100 330 100 Q360 100 360 80 L360 20 L345 20 L345 80 Q345 88 330 88 Q315 88 315 80 L315 20 Z" fill="#f1c22d"/>
+                            <path d="M380 20 L380 100 L395 100 L395 70 L425 70 Q450 70 450 45 Q450 20 425 20 Z M395 35 L420 35 Q435 35 435 45 Q435 55 420 55 L395 55 Z" fill="#50a8f3"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
 
@@ -432,7 +437,7 @@
                                 </h3>
                                 <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Qué necesitas de la audiencia (socios, capital, mentoría).</p>
                             </div>
-                            <button onclick="openNoteModal('ask', 'bg-indigo-200')" class="add-note-btn text-violet-700 hover:text-violet-800 transition-colors"><i class="fas fa-plus-circle text-base"></i></button>
+                            <button onclick="openNoteModal('ask', 'bg-indigo-200')" class="add-violet-700 hover:text-violet-800 transition-colors"><i class="fas fa-plus-circle text-base"></i></button>
                         </div>
                         <div class="notes-container flex-grow overflow-y-auto min-h-[140px] max-h-[260px] pr-1"></div>
                     </div>
@@ -462,7 +467,7 @@
         </div>
     </div>
 
-    <!-- Modal de Alertas Personalizado -->
+    <!-- Modal de Alertas Personalizado (Usa modales estilizados en vez de alerts bloqueantes de navegador) -->
     <div id="msg-modal" class="hidden fixed inset-0 z-[110] bg-[#060c1d]/80 flex justify-center items-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 m-4 border border-slate-100">
             <div class="flex items-center gap-3 mb-3">
@@ -509,7 +514,7 @@
         import { getFirestore, doc, setDoc, addDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // ⚙️ CONFIGURACIÓN DE TU PROPIA BASE DE DATOS FIREBASE (Pegado por Gemini)
+        // ⚙️ CONFIGURACIÓN DE TU PROPIA BASE DE DATOS FIREBASE (Sincronizada por Gemini)
         // =========================================================================
         const MY_CUSTOM_FIREBASE_CONFIG = {
             apiKey: "AIzaSyBGnpqbqu09CZXT8kruh70JNQamsfjJUBs",
@@ -549,7 +554,7 @@
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 activeConfig = JSON.parse(__firebase_config);
             } 
-            // 2. Si no existe, usar la configuración personalizada del usuario (para GitHub Pages / Producción)
+            // 2. Si no existe, usar la configuración personalizada de tu Firebase (para GitHub Pages / Producción)
             else if (MY_CUSTOM_FIREBASE_CONFIG) {
                 activeConfig = MY_CUSTOM_FIREBASE_CONFIG;
                 appId = 'production-custom'; // Sobrescribir ID de app pública
@@ -836,7 +841,7 @@
         window.saveCollaboratorName = function() {
             const val = document.getElementById('username-input').value.trim();
             if (!val) {
-                alert("Por favor introduce un nombre válido para que tu equipo te reconozca.");
+                showMsg("Nombre requerido", "Por favor introduce un nombre válido para que tu equipo te reconozca de manera inequívoca.");
                 return;
             }
             myName = val;
