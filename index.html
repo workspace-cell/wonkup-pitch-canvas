@@ -613,7 +613,11 @@
         };
 
         // SUSCRIPCIONES Y HANDLERS DE FIRESTORE (Regla 1, 2, 3)
+        let isSyncInitialized = false;
         async function setupFirebaseSync() {
+            if (isSyncInitialized) return;
+            isSyncInitialized = true;
+
             if (!useFirebase) {
                 setupMockSync();
                 return;
@@ -892,6 +896,9 @@
                     renderPresence();
                 }
             }
+
+            // ¡INICIALIZAR SINCRONIZACIÓN DE FIREBASE INMEDIATAMENTE SIN ESPERAR RECARGA!
+            setupFirebaseSync();
         };
 
         // Mostrar el modal de nombre si no se ha configurado uno previamente
@@ -941,6 +948,7 @@
             document.getElementById('msg-modal').classList.remove('hidden');
         }
 
+        // Modificación de apertura y cerrado seguro para evitar fallos CORS
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
