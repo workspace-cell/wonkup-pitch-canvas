@@ -436,7 +436,7 @@
                                     <div class="relative inline-block group/info text-slate-400 hover:text-[#50a8f3] cursor-help transition-colors">
                                         <i class="fas fa-circle-info text-[11px]"></i>
                                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/info:block bg-slate-900 text-white text-[11px] rounded-lg p-3 shadow-xl z-50 w-64 text-left font-normal leading-normal pointer-events-none whitespace-normal normal-case border border-slate-700">
-                                            ¿Por qué ustedes son las personas correctas para llevar a cabo esta idea? Resalta los roles (líder de desarrollo, marketing, finanzas) y las fortalezas que los complementan.
+                                            ¿Por qué ustedes son las personas correctas para llevar a cabo esta idea? Resalta los roles (líder de desarrollo, marketing, finanzas) and las fortalezas que los complementan.
                                             <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
                                         </div>
                                     </div>
@@ -545,6 +545,38 @@
             <button onclick="saveCollaboratorName()" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-extrabold py-3 px-6 rounded-xl transition-all shadow-md">
                 Unirse a la Sala de Cocreación
             </button>
+        </div>
+    </div>
+
+    <!-- Modal Compartir Sala con Código QR y Copiado de Enlace -->
+    <div id="share-modal" class="hidden fixed inset-0 z-[115] bg-[#060c1d]/90 flex justify-center items-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 m-4 border border-blue-900/20 text-center relative">
+            <button onclick="closeModal('share-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="w-12 h-12 bg-blue-50 text-[#50a8f3] rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-qrcode text-xl"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 mb-1">Compartir Sala</h3>
+            <p class="text-xs text-slate-500 mb-4">Invita a tus compañeros de equipo a colaborar en tiempo real.</p>
+            
+            <!-- Visor del Código QR -->
+            <div class="bg-slate-50 p-4 rounded-2xl inline-block border border-slate-100 mb-4">
+                <img id="share-qr-image" src="" alt="Código QR de la sala" class="w-40 h-40 mx-auto object-contain rounded-lg">
+                <p class="text-[9px] font-extrabold text-slate-400 mt-2.5 uppercase tracking-widest">Escanea para unirte</p>
+            </div>
+
+            <!-- Entrada de Texto con Enlace y Botón de Copiado -->
+            <div class="flex gap-2 mb-4">
+                <input id="share-link-input" type="text" readonly class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 focus:outline-none" value="">
+                <button onclick="copyShareLinkFromInput()" class="bg-[#50a8f3] hover:bg-[#3ca0f0] text-white p-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5" title="Copiar enlace">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+
+            <div class="flex justify-end gap-2.5">
+                <button onclick="closeModal('share-modal')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cerrar</button>
+            </div>
         </div>
     </div>
 
@@ -1119,7 +1151,7 @@
                 const activeNamesHtml = roomActiveCollabs.length > 0
                     ? roomActiveCollabs.map(p => `
                         <span class="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             ${p.userName}
                         </span>
                       `).join('')
@@ -1148,8 +1180,8 @@
                         </div>
 
                         <!-- Bloque de Integrantes Conectados Directamente en la Tarjeta -->
-                        <div class="mt-3 border-t border-blue-950/40 pt-3 mb-4">
-                            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">En línea ahora:</p>
+                        <div class="mt-3 border-t border-blue-900/40 pt-3 mb-4">
+                            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">En línea ahora:</p>
                             <div class="flex flex-wrap gap-1.5">
                                 ${activeNamesHtml}
                             </div>
@@ -1157,15 +1189,15 @@
                     </div>
 
                     <!-- Panel de Controles e Informes en la Base de la Tarjeta -->
-                    <div class="flex flex-col gap-2 pt-3 border-t border-blue-950/40">
-                        <a href="#${room.id}" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5">
+                    <div class="flex flex-col gap-2 pt-3 border-t border-blue-900/40">
+                        <a href="#${room.id}" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5">
                             <i class="fas fa-sign-in-alt"></i> Entrar a colaborar
                         </a>
                         <div class="grid grid-cols-2 gap-1.5 mt-1">
-                            <button onclick="window.exportSessionsToCSV('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 border border-blue-900/30 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1" title="Exportar reporte Excel de actividad">
+                            <button onclick="window.exportSessionsToCSV('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1" title="Exportar reporte Excel de actividad">
                                 <i class="fas fa-file-excel text-emerald-500"></i> Reporte Excel
                             </button>
-                            <button onclick="window.exportSessionsToPDF('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 border border-blue-900/30 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1" title="Descargar asistencia en PDF">
+                            <button onclick="window.exportSessionsToPDF('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1" title="Descargar asistencia en PDF">
                                 <i class="fas fa-file-pdf text-red-500"></i> Reporte PDF
                             </button>
                         </div>
@@ -1298,7 +1330,7 @@
             }
         });
 
-        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas con limpieza de auditorías)
+        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas)
         window.handleNavigationState = function() {
             // Verificar si el nombre está registrado primero
             if (!myName) {
@@ -1316,16 +1348,7 @@
             const pdfExportBtn = document.getElementById('pdf-export-btn');
 
             if (!hash || hash === 'lobby' || hash === '') {
-                // VISTA DEL LOBBY (Registrar salida del integrante)
-                if (window.currentRoomSessionId) {
-                    window.writeSessionActivity(window.currentRoomSessionId, 'exit');
-                    window.currentRoomSessionId = null;
-                }
-                if (window.currentSessionInterval) {
-                    clearInterval(window.currentSessionInterval);
-                    window.currentSessionInterval = null;
-                }
-
+                // VISTA DEL LOBBY
                 roomId = null;
                 lobbyView.classList.remove('hidden');
                 canvasView.classList.add('hidden');
@@ -1413,6 +1436,12 @@
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         function navigateToLobby() {
+            // Registrar salida de sesión de actividad formalmente
+            if (window.currentRoomSessionId && window.writeSessionActivity) {
+                window.writeSessionActivity(window.currentRoomSessionId, 'exit');
+            }
+            if (window.currentSessionInterval) clearInterval(window.currentSessionInterval);
+            
             window.location.hash = '';
         }
 
@@ -1489,17 +1518,30 @@
             closeModal('add-note-modal');
         }
 
-        // COMPARTIR LINK DE LA SALA COLABORATIVA
+        // COMPARTIR LINK DE LA SALA COLABORATIVA CON GENERADOR DE QR INTEGRADO
         function copyRoomLink() {
             const shareUrl = window.location.href;
-            const dummy = document.createElement('input');
-            document.body.appendChild(dummy);
-            dummy.value = shareUrl;
-            dummy.select();
-            document.execCommand('copy');
-            document.body.removeChild(dummy);
             
-            showMsg("¡Enlace Copiado!", "Comparte este enlace con tus compañeros de equipo para que colaboren en tiempo real en la misma pizarra.");
+            // Sincronizar valor en el input del modal
+            document.getElementById('share-link-input').value = shareUrl;
+            
+            // Consumir el generador QR estático gratuito de QRServer
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&color=0b142c&data=${encodeURIComponent(shareUrl)}`;
+            document.getElementById('share-qr-image').src = qrImageUrl;
+            
+            // Desplegar modal de compartir
+            openModal('share-modal');
+        }
+
+        // Copiar el enlace directo desde el input del modal
+        function copyShareLinkFromInput() {
+            const input = document.getElementById('share-link-input');
+            
+            // Clipboard Guardrail fallback
+            input.select();
+            document.execCommand('copy');
+            
+            showMsg("¡Enlace Copiado!", "El enlace de acceso ha sido copiado al portapapeles. Compártelo con tu equipo para que colabore en tiempo real.");
         }
 
         // EXPORTACIÓN A PDF TOTALMENTE SECTORIZADA
