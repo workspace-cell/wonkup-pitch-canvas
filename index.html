@@ -242,8 +242,8 @@
         </div>
 
         <div class="flex gap-3">
-            <button id="back-to-lobby-btn" onclick="navigateToLobby()" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold py-2 px-4 rounded-xl text-sm transition-all">
-                <i class="fas fa-arrow-left"></i> Volver al Lobby
+            <button id="back-to-lobby-btn" onclick="navigateToLobby()" class="hidden bg-[#f1c22d] hover:bg-[#dbad20] text-[#060c1d] font-black py-2.5 px-4 rounded-xl text-sm transition-all shadow-md hover:shadow-yellow-500/20">
+                <i class="fas fa-arrow-left mr-1.5"></i> Volver al Lobby
             </button>
             <button id="pdf-export-btn" onclick="exportToPDF()" class="hidden bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2 px-4 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-all flex items-center gap-2 text-sm">
                 <i class="fas fa-file-pdf"></i> PDF
@@ -282,7 +282,7 @@
                 </div>
             </div>
 
-            <!-- CONTROLES DE ADMINISTRACIÓN: Pestañas + Filtro de Etiquetas + Buscador -->
+            <!-- CONTROLES DE ADMINISTRACIÓN: Pestañas + Buscador + Ordenación + Filtro de Etiquetas -->
             <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-[#060c1d] border border-blue-950 p-4 rounded-2xl shadow-lg w-full">
                 <!-- Pestañas Activas / Archivadas -->
                 <div class="flex bg-[#0b142c] p-1 rounded-xl border border-blue-900/30 w-full lg:w-auto">
@@ -294,10 +294,26 @@
                     </button>
                 </div>
                 
-                <!-- Buscador y Selector de Etiquetas -->
+                <!-- Buscador y selectores integrados -->
                 <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-center">
+                    <!-- Selector de Ordenación (Sort) -->
+                    <div class="relative w-full sm:w-44">
+                        <select id="sort-rooms-select" onchange="window.handleSortChange(this.value)" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2.5 px-3 pr-8 text-xs text-slate-300 font-bold focus:outline-none focus:border-[#50a8f3] appearance-none transition-all cursor-pointer">
+                            <option value="custom">Orden personalizado</option>
+                            <option value="date-desc">Recientes primero</option>
+                            <option value="date-asc">Antiguas primero</option>
+                            <option value="name-asc">Equipo (A-Z)</option>
+                            <option value="idea-asc">Idea (A-Z)</option>
+                            <option value="notes-desc">Más notas primero</option>
+                            <option value="active-desc">Más activos primero</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+                            <i class="fas fa-sort text-[10px]"></i>
+                        </div>
+                    </div>
+
                     <!-- Selector de Etiquetas Dinámicas -->
-                    <div class="relative w-full sm:w-48">
+                    <div class="relative w-full sm:w-44">
                         <select id="filter-tag-select" onchange="window.handleTagFilter(this.value)" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2.5 px-3 pr-8 text-xs text-slate-300 font-bold focus:outline-none focus:border-[#50a8f3] appearance-none transition-all cursor-pointer">
                             <option value="all">Todas las etiquetas</option>
                         </select>
@@ -306,12 +322,12 @@
                         </div>
                     </div>
 
-                    <!-- Buscador de salas -->
-                    <div class="relative w-full sm:w-64">
+                    <!-- Buscador de salas (Por Equipo o Idea) -->
+                    <div class="relative w-full sm:w-56">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
                             <i class="fas fa-search text-xs"></i>
                         </span>
-                        <input id="search-rooms-input" oninput="window.handleSearch(this.value)" type="text" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2 px-3 pl-10 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:border-[#50a8f3] transition-all" placeholder="Buscar sala por nombre...">
+                        <input id="search-rooms-input" oninput="window.handleSearch(this.value)" type="text" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2 px-3 pl-10 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:border-[#50a8f3] transition-all" placeholder="Buscar por Team o Idea...">
                     </div>
                 </div>
             </div>
@@ -712,7 +728,7 @@
     <div id="add-note-modal" class="hidden fixed inset-0 z-[100] bg-[#060c1d]/80 flex justify-center items-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 m-4 relative border border-slate-100">
             <h3 id="modal-title" class="text-lg font-black text-slate-900 mb-4">Añadir Nueva Idea</h3>
-            <textarea id="manual-note-input" rows="4" class="w-full border-2 border-slate-200 rounded-xl p-3 text-slate-800 focus:outline-none focus:border-[#50a8f3] mb-4 resize-none text-sm font-semibold" placeholder="Escribe tu idea clave para esta sección..."></textarea>
+            <textarea id="manual-note-input" rows="4" class="w-full border-2 border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:outline-none focus:border-[#50a8f3] mb-4 resize-none text-sm font-semibold" placeholder="Escribe tu idea clave para esta sección..."></textarea>
             
             <div class="mb-5">
                 <p class="text-xs text-slate-400 mb-2.5 font-bold uppercase tracking-wider">Color del Post-it</p>
@@ -797,7 +813,8 @@
             sessions: [], // Colección para guardar el histórico de tiempos de actividad
             currentTab: 'active', // Pestaña de lobby por defecto
             searchQuery: '', // Buscador por defecto
-            selectedTagFilter: 'all' // Filtro por etiqueta por defecto
+            selectedTagFilter: 'all', // Filtro por etiqueta por defecto
+            sortOption: 'custom' // Filtro por orden por defecto
         };
 
         // SUSCRIPCIONES Y HANDLERS DE FIRESTORE (Regla 1, 2, 3)
@@ -1006,10 +1023,10 @@
             
             // Salas preestablecidas
             state.rooms = [
-                { id: 'room-alpha', name: 'Equipo Alpha', createdAt: Date.now(), archived: false, tagText: 'Agora', tagColor: 'purple' },
-                { id: 'room-beta', name: 'Equipo Beta', createdAt: Date.now() - 3600000, archived: false, tagText: 'WonkUp', tagColor: 'blue' },
-                { id: 'room-gamma', name: 'Equipo Gamma', createdAt: Date.now() - 7200000, archived: false, tagText: 'Colegio', tagColor: 'green' },
-                { id: 'room-archived-demo', name: 'Antiguo Proyecto Archivador', createdAt: Date.now() - 86400000, archived: true, tagText: 'Agora', tagColor: 'purple' }
+                { id: 'room-alpha', name: 'Equipo Alpha', createdAt: Date.now(), archived: false, tagText: 'Agora', tagColor: 'purple', ideaTitle: 'EcoFilamento Escolar' },
+                { id: 'room-beta', name: 'Equipo Beta', createdAt: Date.now() - 3600000, archived: false, tagText: 'WonkUp', tagColor: 'blue', ideaTitle: 'AeroFiltro Bio' },
+                { id: 'room-gamma', name: 'Equipo Gamma', createdAt: Date.now() - 7200000, archived: false, tagText: 'Colegio', tagColor: 'green', ideaTitle: 'Paneles Inteligentes' },
+                { id: 'room-archived-demo', name: 'Antiguo Proyecto Archivador', createdAt: Date.now() - 86400000, archived: true, tagText: 'Agora', tagColor: 'purple', ideaTitle: 'App Desecho Cero' }
             ];
 
             // Ordenación de salas offline
@@ -1112,6 +1129,20 @@
             if (useFirebase) {
                 const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
                 await setDoc(metadataDocRef, state.metadata, { merge: true });
+                
+                // Keep the room document in sync with the current metadata for fast query & filters!
+                const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+                if (key === 'ideaTitle') {
+                    await setDoc(roomDocRef, { ideaTitle: value }, { merge: true });
+                } else if (key === 'teamNames') {
+                    await setDoc(roomDocRef, { teamNames: value }, { merge: true });
+                }
+            } else {
+                const idx = state.rooms.findIndex(r => r.id === roomId);
+                if (idx !== -1) {
+                    state.rooms[idx][key] = value;
+                }
+                renderRooms();
             }
         };
 
@@ -1142,7 +1173,9 @@
                         creatorId: myUserId,
                         archived: false, // Salas nuevas se inician activas
                         tagText: tagText || "",
-                        tagColor: tagColor || "blue"
+                        tagColor: tagColor || "blue",
+                        ideaTitle: "",
+                        teamNames: ""
                     });
                 } catch (err) {
                     console.error("Error al registrar sala en base de datos:", err);
@@ -1154,7 +1187,9 @@
                     createdAt: Date.now(),
                     archived: false,
                     tagText: tagText || "",
-                    tagColor: tagColor || "blue"
+                    tagColor: tagColor || "blue",
+                    ideaTitle: "",
+                    teamNames: ""
                 });
                 renderRooms();
             }
@@ -1435,7 +1470,7 @@
             });
         };
 
-        // CONTROLES DE FILTRADO Y BÚSQUEDA DINÁMICA DE SALAS
+        // CONTROLES DE FILTRADO, BÚSQUEDA Y ORDENACIÓN DINÁMICA DE SALAS
         window.switchTab = function(tabName) {
             state.currentTab = tabName;
             
@@ -1462,6 +1497,11 @@
 
         window.handleTagFilter = function(tagValue) {
             state.selectedTagFilter = tagValue;
+            renderRooms();
+        };
+
+        window.handleSortChange = function(sortValue) {
+            state.sortOption = sortValue;
             renderRooms();
         };
 
@@ -1563,13 +1603,44 @@
                 );
             }
 
-            // Filtrar salas según la consulta de búsqueda si la hay
+            // Filtrar salas según la consulta de búsqueda si la hay (Busca por Team o por Idea)
             if (state.searchQuery) {
                 filteredRooms = filteredRooms.filter(room => 
                     room.name.toLowerCase().includes(state.searchQuery) ||
+                    (room.ideaTitle && room.ideaTitle.toLowerCase().includes(state.searchQuery)) ||
                     room.id.toLowerCase().includes(state.searchQuery)
                 );
             }
+
+            // Ordenar salas según la opción elegida
+            filteredRooms.sort((a, b) => {
+                const roomANotesCount = state.notes.filter(n => n.roomId === a.id).length;
+                const roomBNotesCount = state.notes.filter(n => n.roomId === b.id).length;
+                const roomAActiveCollabs = state.presence.filter(p => p.roomId === a.id).length;
+                const roomBActiveCollabs = state.presence.filter(p => p.roomId === b.id).length;
+
+                switch(state.sortOption) {
+                    case 'date-desc':
+                        return (b.createdAt || 0) - (a.createdAt || 0);
+                    case 'date-asc':
+                        return (a.createdAt || 0) - (b.createdAt || 0);
+                    case 'name-asc':
+                        return (a.name || '').localeCompare(b.name || '');
+                    case 'idea-asc':
+                        return (a.ideaTitle || 'Sin idea').localeCompare(b.ideaTitle || 'Sin idea');
+                    case 'notes-desc':
+                        return roomBNotesCount - roomANotesCount;
+                    case 'active-desc':
+                        return roomBActiveCollabs - roomAActiveCollabs;
+                    case 'custom':
+                    default:
+                        // Mantener el orden de Firestore/Drag & Drop indexado en 'order'
+                        const orderA = a.order !== undefined ? a.order : 9999;
+                        const orderB = b.order !== undefined ? b.order : 9999;
+                        if (orderA !== orderB) return orderA - orderB;
+                        return (b.createdAt || 0) - (a.createdAt || 0);
+                }
+            });
 
             if (filteredRooms.length === 0) {
                 emptyState.classList.remove('hidden');
@@ -1621,14 +1692,30 @@
                     </span>
                 ` : '';
 
+                // Renderizar el nombre de la idea en la tarjeta
+                const ideaHtml = `
+                    <div class="text-xs text-slate-400 mt-2.5 flex items-center gap-1.5 font-medium min-w-0 bg-blue-950/25 p-2 rounded-xl border border-blue-900/10">
+                        <i class="fas fa-lightbulb text-[#f1c22d] text-[10px] shrink-0"></i>
+                        <span class="truncate" title="${room.ideaTitle || 'Sin idea definida'}">
+                            Idea: <strong class="text-slate-300 font-semibold">${room.ideaTitle || 'Sin idea definida'}</strong>
+                        </span>
+                    </div>
+                `;
+
+                // Configurar drag and drop visual de agarre por orden de criterio
+                const isCustomOrder = state.sortOption === 'custom';
+                const gripIconHtml = isCustomOrder 
+                    ? `<i class="fas fa-grip-vertical text-slate-600 text-xs cursor-grab active:cursor-grabbing hover:text-slate-400"></i>` 
+                    : `<i class="fas fa-grip-vertical text-slate-800 text-xs opacity-30 cursor-not-allowed" title="Cambia a Orden Personalizado para arrastrar"></i>`;
+
                 const card = document.createElement('div');
                 
                 // Variar el estilo si la sala está archivada para darle un look offline/moteado
                 const borderClass = room.archived ? 'border-slate-800 bg-[#060c1d]/60 opacity-90' : 'border-blue-950 hover:border-blue-800 bg-[#060c1d] cursor-grab active:cursor-grabbing';
                 card.className = `${borderClass} border rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all duration-300 hover:-translate-y-1`;
                 
-                // Habilitar Drag & Drop exclusivamente en la pestaña de salas activas para evitar conflictos
-                if (state.currentTab === 'active') {
+                // Habilitar Drag & Drop exclusivamente en la pestaña de salas activas en orden personalizado para evitar conflictos
+                if (state.currentTab === 'active' && isCustomOrder) {
                     card.draggable = true;
                     card.addEventListener('dragstart', (e) => window.handleRoomDragStart(e, room.id));
                     card.addEventListener('dragover', (e) => window.handleRoomDragOver(e));
@@ -1672,7 +1759,7 @@
                     <div>
                         <div class="flex justify-between items-start gap-3">
                             <div class="flex items-center gap-2 overflow-hidden flex-grow">
-                                <i class="fas fa-grip-vertical text-slate-600 text-xs cursor-grab active:cursor-grabbing hover:text-slate-400"></i>
+                                ${gripIconHtml}
                                 <div class="flex flex-col gap-1 overflow-hidden">
                                     <h3 class="text-white font-bold text-base leading-snug truncate ${room.archived ? 'text-slate-400 line-through' : ''}" title="${room.name}">${room.name}</h3>
                                     <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
@@ -1687,9 +1774,13 @@
                             </div>
                             <span class="text-[9px] font-mono font-bold bg-blue-950 border border-blue-900/60 text-[#50a8f3] px-2 py-0.5 rounded uppercase tracking-wider shrink-0">#${room.id.split('-')[1] || room.id}</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">ID: ${room.id}</p>
                         
-                        <div class="flex gap-4 mt-4 mb-2">
+                        <!-- MOSTRAR LA IDEA DEL TEAM -->
+                        ${ideaHtml}
+
+                        <p class="text-[10px] text-slate-500 mt-2">ID: ${room.id}</p>
+                        
+                        <div class="flex gap-4 mt-3 mb-2">
                             <div class="flex items-center gap-1.5 text-xs text-slate-400">
                                 <i class="fas fa-sticky-note text-[#f1c22d]"></i>
                                 <span class="font-bold text-white">${roomNotesCount}</span> notas
@@ -1847,7 +1938,7 @@
             }
         });
 
-        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas con limpieza de auditorías)
+        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas)
         window.handleNavigationState = function() {
             // Verificar si el nombre está registrado primero
             if (!myName) {
@@ -1865,16 +1956,7 @@
             const pdfExportBtn = document.getElementById('pdf-export-btn');
 
             if (!hash || hash === 'lobby' || hash === '') {
-                // VISTA DEL LOBBY (Registrar salida del integrante)
-                if (window.currentRoomSessionId) {
-                    window.writeSessionActivity(window.currentRoomSessionId, 'exit');
-                    window.currentRoomSessionId = null;
-                }
-                if (window.currentSessionInterval) {
-                    clearInterval(window.currentSessionInterval);
-                    window.currentSessionInterval = null;
-                }
-
+                // VISTA DEL LOBBY
                 roomId = null;
                 lobbyView.classList.remove('hidden');
                 canvasView.classList.add('hidden');
