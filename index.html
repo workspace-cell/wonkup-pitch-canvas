@@ -196,15 +196,6 @@
         .notes-container::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-
-        /* Animación de destello rojo para cuando el temporizador se agota */
-        @keyframes pulse-red {
-            0%, 100% { background-color: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4); }
-            50% { background-color: rgba(239, 68, 68, 0.35); border-color: rgba(239, 68, 68, 1); }
-        }
-        .timer-warning {
-            animation: pulse-red 1s infinite;
-        }
     </style>
 </head>
 <body class="bg-[#0b142c] text-slate-800 h-screen flex flex-col overflow-hidden">
@@ -242,23 +233,51 @@
                 <!-- Se poblará dinámicamente -->
             </div>
 
-            <!-- NUEVO TEMPORIZADOR VISUAL COLABORATIVO (Miro Style) -->
             <div class="w-px h-5 bg-blue-950"></div>
-            <div id="canvas-timer-widget" class="flex items-center gap-2 bg-[#060c1d] border border-blue-900/40 rounded-xl px-3 py-1 text-white">
-                <span class="text-xs font-mono font-bold text-[#f1c22d] flex items-center gap-1.5" id="timer-display" title="Tiempo restante">
-                    <i class="fas fa-stopwatch text-[11px] animate-pulse"></i> 05:00
-                </span>
-                <div class="flex gap-1.5 items-center no-print border-l border-blue-950 pl-2">
-                    <button onclick="window.toggleTimer()" class="text-slate-400 hover:text-emerald-400 p-1 text-[11px] transition-colors" title="Iniciar / Pausar">
-                        <i class="fas fa-play text-[10px]" id="timer-toggle-icon"></i>
-                    </button>
-                    <button onclick="window.resetTimer()" class="text-slate-400 hover:text-red-400 p-1 text-[11px] transition-colors" title="Reiniciar">
-                        <i class="fas fa-redo text-[10px]"></i>
-                    </button>
-                    <button onclick="window.addTimerDuration(60)" class="text-slate-500 hover:text-[#50a8f3] p-1 text-[10px] transition-colors font-bold" title="+1 Minuto">+1m</button>
-                    <button onclick="window.addTimerDuration(300)" class="text-slate-500 hover:text-[#50a8f3] p-1 text-[10px] transition-colors font-bold" title="+5 Minutos">+5m</button>
+
+            <!-- TEMPORIZADOR INTEGRADO (Miro/Mural Style) -->
+            <div class="relative flex items-center bg-blue-950/80 hover:bg-blue-900/80 border border-blue-900/30 rounded-xl px-3 py-1 shadow-inner select-none no-print">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.toggleTimerDropdown(event)">
+                    <i class="fas fa-stopwatch text-[#f1c22d]" id="timer-icon"></i>
+                    <span class="font-mono text-xs font-black text-slate-300 tracking-wider" id="timer-display">05:00</span>
+                    <i class="fas fa-cog text-[9px] text-slate-500 hover:text-slate-300 transition-colors ml-0.5"></i>
+                </div>
+                
+                <!-- Menú flotante de controles del temporizador -->
+                <div id="timer-dropdown" class="hidden absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-2xl p-4 w-60 border border-slate-100 z-[100] text-left text-slate-800">
+                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Configurar Tiempo</p>
+                    
+                    <!-- Presets Rápidos -->
+                    <div class="grid grid-cols-4 gap-1.5 mb-3">
+                        <button onclick="window.setTimerPreset(60)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 rounded-lg text-xs transition-colors">1m</button>
+                        <button onclick="window.setTimerPreset(180)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 rounded-lg text-xs transition-colors">3m</button>
+                        <button onclick="window.setTimerPreset(300)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 rounded-lg text-xs transition-colors">5m</button>
+                        <button onclick="window.setTimerPreset(600)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 rounded-lg text-xs transition-colors">10m</button>
+                    </div>
+                    
+                    <!-- Entrada Personalizada -->
+                    <div class="flex gap-2 items-center mb-4">
+                        <input id="timer-custom-minutes" type="number" min="1" max="99" value="5" class="w-16 bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-center text-xs font-bold text-slate-800 focus:outline-none focus:border-[#50a8f3]">
+                        <span class="text-xs text-slate-500 font-semibold">minutos</span>
+                        <button onclick="window.setTimerCustom()" class="bg-[#50a8f3] hover:bg-[#3ca0f0] text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-colors flex-grow">Fijar</button>
+                    </div>
+                    
+                    <!-- Botones de Control Sincronizados -->
+                    <div class="border-t border-slate-100 pt-3 flex justify-between items-center gap-1.5">
+                        <button id="timer-play-btn" onclick="window.startTimerInCloud()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition-colors flex items-center justify-center gap-1 shadow-sm">
+                            <i class="fas fa-play text-[9px]"></i> Iniciar
+                        </button>
+                        <button id="timer-pause-btn" onclick="window.pauseTimerInCloud()" class="hidden flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-xl text-xs transition-colors flex items-center justify-center gap-1 shadow-sm">
+                            <i class="fas fa-pause text-[9px]"></i> Pausar
+                        </button>
+                        <button onclick="window.resetTimerInCloud()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-3 rounded-xl text-xs transition-colors flex items-center justify-center gap-1">
+                            <i class="fas fa-undo text-[9px]"></i> Reiniciar
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <div class="w-px h-5 bg-blue-950"></div>
 
             <button onclick="copyRoomLink()" class="bg-blue-950/80 hover:bg-blue-900 text-slate-300 hover:text-white border border-blue-900/30 transition-all py-1 px-3 rounded-lg text-xs font-bold flex items-center gap-1.5">
                 <i class="fas fa-link text-[#50a8f3]"></i> Compartir Sala
@@ -309,22 +328,22 @@
                 </div>
             </div>
 
-            <!-- CONTROLES DE ADMINISTRACIÓN: Pestañas + Buscador + Ordenación + Filtro de Etiquetas -->
-            <div class="flex flex-col lg:flex-row justify-between items-center gap-4 bg-[#060c1d] border border-blue-950 p-4 rounded-2xl shadow-lg w-full">
+            <!-- CONTROLES DE ADMINISTRACIÓN REPARADOS CONTRA DESBORDES (GRID) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-[#060c1d] border border-blue-950 p-4 rounded-2xl shadow-lg w-full items-center">
                 <!-- Pestañas Activas / Archivadas -->
-                <div class="flex bg-[#0b142c] p-1 rounded-xl border border-blue-900/30 w-full lg:w-auto">
-                    <button id="tab-active" onclick="window.switchTab('active')" class="flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white whitespace-nowrap">
+                <div class="lg:col-span-4 flex bg-[#0b142c] p-1 rounded-xl border border-blue-900/30 w-full">
+                    <button id="tab-active" onclick="window.switchTab('active')" class="flex-grow px-3 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white whitespace-nowrap">
                         Salas Activas <span id="count-active" class="ml-1 bg-white/20 px-1.5 py-0.5 rounded text-[10px]">0</span>
                     </button>
-                    <button id="tab-archived" onclick="window.switchTab('archived')" class="flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white whitespace-nowrap">
+                    <button id="tab-archived" onclick="window.switchTab('archived')" class="flex-grow px-3 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white whitespace-nowrap">
                         Archivadas <span id="count-archived" class="ml-1 bg-white/10 px-1.5 py-0.5 rounded text-[10px]">0</span>
                     </button>
                 </div>
                 
-                <!-- Buscador y selectores integrados -->
-                <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-center">
+                <!-- Buscador y selectores integrados en rejilla fluida para evitar superposiciones -->
+                <div class="lg:col-span-8 flex flex-col sm:flex-row gap-3 w-full items-center justify-end flex-wrap sm:flex-nowrap">
                     <!-- Selector de Ordenación (Sort) -->
-                    <div class="relative w-full sm:w-44">
+                    <div class="relative w-full sm:w-1/3 max-w-full sm:max-w-[170px] lg:max-w-[160px] xl:max-w-[170px]">
                         <select id="sort-rooms-select" onchange="window.handleSortChange(this.value)" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2.5 px-3 pr-8 text-xs text-slate-300 font-bold focus:outline-none focus:border-[#50a8f3] appearance-none transition-all cursor-pointer">
                             <option value="custom">Orden personalizado</option>
                             <option value="date-desc">Recientes primero</option>
@@ -340,7 +359,7 @@
                     </div>
 
                     <!-- Selector de Etiquetas Dinámicas -->
-                    <div class="relative w-full sm:w-44">
+                    <div class="relative w-full sm:w-1/3 max-w-full sm:max-w-[170px] lg:max-w-[160px] xl:max-w-[170px]">
                         <select id="filter-tag-select" onchange="window.handleTagFilter(this.value)" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2.5 px-3 pr-8 text-xs text-slate-300 font-bold focus:outline-none focus:border-[#50a8f3] appearance-none transition-all cursor-pointer">
                             <option value="all">Todas las etiquetas</option>
                         </select>
@@ -350,7 +369,7 @@
                     </div>
 
                     <!-- Buscador de salas (Por Equipo o Idea) -->
-                    <div class="relative w-full sm:w-56">
+                    <div class="relative w-full sm:w-1/3 max-w-full sm:max-w-[240px] lg:max-w-[200px] xl:max-w-[240px]">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
                             <i class="fas fa-search text-xs"></i>
                         </span>
@@ -384,7 +403,7 @@
     <main id="canvas-view" class="hidden flex-grow overflow-auto p-4 lg:p-6 bg-[#0b142c] flex justify-center items-start">
         
         <!-- LIENZO DEL PDF (Sincronizado y Responsivo) -->
-        <div id="pdf-canvas" class="bg-white shadow-2xl p-6 rounded-3xl canvas-container flex flex-col gap-5 my-auto">
+        <div id="pdf-canvas" class="bg-white shadow-2xl p-6 rounded-3xl canvas-container flex flex-col gap-5 my-auto transition-all duration-300">
             
             <!-- Cabecera del Documento (Diseño Responsivo que se mantiene en fila durante la exportación) -->
             <div class="canvas-header flex flex-col md:flex-row justify-between items-center border-b-2 border-slate-100 pb-4 gap-4">
@@ -575,7 +594,7 @@
                             <div>
                                 <h3 class="font-extrabold text-rose-800 text-xs flex items-center gap-1.5">
                                     <span class="text-base">📈</span> TRACCIÓN Y VALIDACIÓN
-                                    <div class="relative inline-block group/info text-slate-400 hover:text-rose-700 cursor-help transition-colors">
+                                    <div class="relative inline-block group/info text-slate-400 hover:text-[#50a8f3] cursor-help transition-colors">
                                         <i class="fas fa-circle-info text-[11px]"></i>
                                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/info:block bg-slate-900 text-white text-[11px] rounded-lg p-3 shadow-xl z-50 w-64 text-left font-normal leading-normal pointer-events-none whitespace-normal normal-case border border-slate-700">
                                             Muestra los datos duros obtenidos en tus experimentos. ¿Cuántas entrevistas hicieron? ¿Qué porcentaje de personas se pre-registraron? ¿Qué comentarios de valor obtuvieron?
@@ -596,7 +615,7 @@
                             <div>
                                 <h3 class="font-extrabold text-violet-800 text-xs flex items-center gap-1.5">
                                     <span class="text-base">📣</span> LA PETICIÓN (THE ASK)
-                                    <div class="relative inline-block group/info text-slate-400 hover:text-violet-700 cursor-help transition-colors">
+                                    <div class="relative inline-block group/info text-slate-400 hover:text-[#50a8f3] cursor-help transition-colors">
                                         <i class="fas fa-circle-info text-[11px]"></i>
                                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/info:block bg-slate-900 text-white text-[11px] rounded-lg p-3 shadow-xl z-50 w-64 text-left font-normal leading-normal pointer-events-none whitespace-normal normal-case border border-slate-700">
                                             ¿Qué necesitas hoy para pasar al siguiente nivel? No tiene que ser solo dinero; puede ser acceso a mentores expertos, contactos con escuelas, socios de desarrollo o feedback técnico.
@@ -745,8 +764,8 @@
             </div>
             <p id="confirm-body" class="text-slate-600 mb-6 text-sm leading-relaxed"></p>
             <div class="flex justify-end gap-3">
-                <button onclick="closeModal('confirm-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
-                <button id="confirm-action-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md">Confirmar</button>
+                <button onclick="closeModal('confirm-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
+                <button id="confirm-action-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-md">Confirmar</button>
             </div>
         </div>
     </div>
@@ -835,9 +854,13 @@
         let state = {
             rooms: [],
             notes: [],
-            metadata: { ideaTitle: '', teamNames: '', timerSeconds: 300, timerState: 'paused', timerLastUpdated: 0 },
+            metadata: { ideaTitle: '', teamNames: '' },
             presence: [],
-            sessions: [] // Colección para guardar el histórico de tiempos de actividad
+            sessions: [], // Colección para guardar el histórico de tiempos de actividad
+            currentTab: 'active', // Pestaña de lobby por defecto
+            searchQuery: '', // Buscador por defecto
+            selectedTagFilter: 'all', // Filtro por etiqueta por defecto
+            sortOption: 'custom' // Filtro por orden por defecto
         };
 
         // SUSCRIPCIONES Y HANDLERS DE FIRESTORE (Regla 1, 2, 3)
@@ -1014,31 +1037,26 @@
                 renderNotes();
                 renderPresence();
                 syncHeaderInputs();
-                syncTimerDisplay();
+                syncTimerState();
                 return;
             }
 
             // Desuscribirse del snapshot de metadatos anterior si existía
             if (metadataUnsubscribe) metadataUnsubscribe();
 
-            // Sincronización de inputs de cabecera en tiempo real para esta sala (incluyendo el temporizador)
+            // Sincronización de inputs de cabecera en tiempo real para esta sala
             const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
             metadataUnsubscribe = onSnapshot(metadataDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     state.metadata = docSnap.data();
                     syncHeaderInputs();
-                    syncTimerDisplay(); // Sincroniza el reloj Miro-style en tiempo real
+                    // Sincronizar el estado del temporizador en tiempo real
+                    window.syncTimerState();
                 } else {
                     // Inicializar metadatos vacíos si es una sala completamente nueva
-                    state.metadata = { 
-                        ideaTitle: '', 
-                        teamNames: '',
-                        timerSeconds: 300, 
-                        timerState: 'paused', 
-                        timerLastUpdated: 0 
-                    };
+                    state.metadata = { ideaTitle: '', teamNames: '' };
                     syncHeaderInputs();
-                    syncTimerDisplay();
+                    window.syncTimerState();
                 }
             }, (error) => {
                 console.error("Error al sincronizar metadatos de la sala:", error);
@@ -1047,6 +1065,203 @@
             renderNotes();
             renderPresence();
         };
+
+        // LÓGICA DE AUDIO DE ALARMA NATIVA (Utiliza Web Audio API)
+        window.playAlarmSound = function() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = ctx.currentTime;
+                
+                // Beep 1
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = "sine";
+                osc1.frequency.setValueAtTime(880, now); // La5
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.4);
+
+                // Beep 2
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = "sine";
+                osc2.frequency.setValueAtTime(880, now + 0.45);
+                gain2.gain.setValueAtTime(0.3, now + 0.45);
+                gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.45);
+                osc2.stop(now + 0.9);
+            } catch (e) {
+                console.warn("AudioContext bloqueado por política de autoplay:", e);
+            }
+        };
+
+        // MANEJADORES DE SINCRONIZACIÓN Y ACCIONES DEL RELOJ (TIMER)
+        let localTimerInterval = null;
+        let lastPlayedAlarmSession = null;
+
+        window.syncTimerState = function() {
+            const display = document.getElementById('timer-display');
+            const playBtn = document.getElementById('timer-play-btn');
+            const pauseBtn = document.getElementById('timer-pause-btn');
+
+            clearInterval(localTimerInterval);
+
+            // Leer variables del temporizador desde Firestore
+            const timerState = state.metadata.timerState || 'stopped';
+            const timerDuration = state.metadata.timerDuration || 300; // 5m por defecto
+            const timerEndTime = state.metadata.timerEndTime || 0;
+            const timerRemaining = state.metadata.timerRemaining !== undefined ? state.metadata.timerRemaining : timerDuration;
+
+            const updateDisplay = (sec) => {
+                const m = Math.floor(sec / 60);
+                const s = sec % 60;
+                display.innerText = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+            };
+
+            const canvasContainer = document.getElementById('pdf-canvas');
+            canvasContainer.classList.remove('border-red-500', 'border-4', 'animate-pulse');
+
+            if (timerState === 'running') {
+                playBtn.classList.add('hidden');
+                pauseBtn.classList.remove('hidden');
+
+                const tick = () => {
+                    const now = Date.now();
+                    const timeLeft = Math.max(0, Math.round((timerEndTime - now) / 1000));
+                    updateDisplay(timeLeft);
+
+                    if (timeLeft <= 0) {
+                        clearInterval(localTimerInterval);
+                        playBtn.classList.remove('hidden');
+                        pauseBtn.classList.add('hidden');
+                        
+                        // Alarma visual en el canvas
+                        canvasContainer.classList.add('border-red-500', 'border-4', 'animate-pulse');
+                        
+                        // Sonar bip-beep una única vez por finalización
+                        const sessionAlarmKey = `${roomId}_${timerEndTime}`;
+                        if (lastPlayedAlarmSession !== sessionAlarmKey) {
+                            lastPlayedAlarmSession = sessionAlarmKey;
+                            window.playAlarmSound();
+                        }
+                    }
+                };
+
+                tick();
+                localTimerInterval = setInterval(tick, 250);
+            } else if (timerState === 'paused') {
+                playBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                updateDisplay(timerRemaining);
+            } else {
+                // Detenido / Reset
+                playBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                updateDisplay(timerDuration);
+            }
+        };
+
+        window.startTimerInCloud = async function() {
+            const timerDuration = state.metadata.timerDuration || 300;
+            const timerRemaining = state.metadata.timerRemaining !== undefined ? state.metadata.timerRemaining : timerDuration;
+            
+            const durationToUse = state.metadata.timerState === 'paused' ? timerRemaining : timerDuration;
+            const timerEndTime = Date.now() + durationToUse * 1000;
+
+            if (useFirebase) {
+                const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
+                await setDoc(metadataDocRef, {
+                    timerState: 'running',
+                    timerEndTime: timerEndTime,
+                    timerRemaining: durationToUse
+                }, { merge: true });
+            } else {
+                state.metadata.timerState = 'running';
+                state.metadata.timerEndTime = timerEndTime;
+                state.metadata.timerRemaining = durationToUse;
+                window.syncTimerState();
+            }
+            document.getElementById('timer-dropdown').classList.add('hidden');
+        };
+
+        window.pauseTimerInCloud = async function() {
+            if (state.metadata.timerState !== 'running') return;
+            
+            const timerEndTime = state.metadata.timerEndTime || 0;
+            const timerRemaining = Math.max(0, Math.round((timerEndTime - Date.now()) / 1000));
+
+            if (useFirebase) {
+                const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
+                await setDoc(metadataDocRef, {
+                    timerState: 'paused',
+                    timerRemaining: timerRemaining
+                }, { merge: true });
+            } else {
+                state.metadata.timerState = 'paused';
+                state.metadata.timerRemaining = timerRemaining;
+                window.syncTimerState();
+            }
+        };
+
+        window.resetTimerInCloud = async function() {
+            const timerDuration = state.metadata.timerDuration || 300;
+
+            if (useFirebase) {
+                const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
+                await setDoc(metadataDocRef, {
+                    timerState: 'stopped',
+                    timerRemaining: timerDuration
+                }, { merge: true });
+            } else {
+                state.metadata.timerState = 'stopped';
+                state.metadata.timerRemaining = timerDuration;
+                window.syncTimerState();
+            }
+        };
+
+        window.setTimerPreset = async function(seconds) {
+            if (useFirebase) {
+                const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
+                await setDoc(metadataDocRef, {
+                    timerDuration: seconds,
+                    timerRemaining: seconds,
+                    timerState: 'stopped'
+                }, { merge: true });
+            } else {
+                state.metadata.timerDuration = seconds;
+                state.metadata.timerRemaining = seconds;
+                state.metadata.timerState = 'stopped';
+                window.syncTimerState();
+            }
+        };
+
+        window.setTimerCustom = async function() {
+            const inputVal = parseInt(document.getElementById('timer-custom-minutes').value) || 5;
+            const seconds = Math.max(1, Math.min(99, inputVal)) * 60;
+            await window.setTimerPreset(seconds);
+        };
+
+        // INTERFAZ DE NAVEGACIÓN Y APERTURA DE MENÚS DEL RELOJ
+        window.toggleTimerDropdown = function(e) {
+            if (e) e.stopPropagation();
+            document.getElementById('timer-dropdown').classList.toggle('hidden');
+        };
+
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('timer-dropdown');
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                const icon = document.getElementById('timer-icon');
+                const display = document.getElementById('timer-display');
+                if (!dropdown.contains(e.target) && e.target !== icon && e.target !== display) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
 
         // MOTOR LOCAL DE COCREACIÓN (MOCK INTERACTIVO EN CASO DE NO DETECTAR FIREBASE)
         function setupMockSync() {
@@ -1161,6 +1376,20 @@
             if (useFirebase) {
                 const metadataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'metadata', roomId);
                 await setDoc(metadataDocRef, state.metadata, { merge: true });
+                
+                // Keep the room document in sync with the current metadata for fast query & filters!
+                const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+                if (key === 'ideaTitle') {
+                    await setDoc(roomDocRef, { ideaTitle: value }, { merge: true });
+                } else if (key === 'teamNames') {
+                    await setDoc(roomDocRef, { teamNames: value }, { merge: true });
+                }
+            } else {
+                const idx = state.rooms.findIndex(r => r.id === roomId);
+                if (idx !== -1) {
+                    state.rooms[idx][key] = value;
+                }
+                renderRooms();
             }
         };
 
@@ -1497,12 +1726,12 @@
             const titleLabel = document.getElementById('lobby-section-title');
 
             if (tabName === 'active') {
-                activeBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white";
-                archivedBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white";
+                activeBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white whitespace-nowrap";
+                archivedBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white whitespace-nowrap";
                 titleLabel.innerHTML = `<i class="fas fa-network-wired text-[#f1c22d]"></i> Salas de Trabajo Activas`;
             } else {
-                activeBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white";
-                archivedBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white";
+                activeBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-400 hover:text-white whitespace-nowrap";
+                archivedBtn.className = "flex-grow lg:flex-grow-0 px-4 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white whitespace-nowrap";
                 titleLabel.innerHTML = `<i class="fas fa-archive text-[#50a8f3]"></i> Historial de Salas Archivadas`;
             }
             renderRooms();
@@ -1571,141 +1800,6 @@
                 }
             }
         };
-
-        // =========================================================================
-        // ⏱️ CONTROLADORES Y LÓGICA DEL TEMPORIZADOR COLABORATIVO (Miro Style)
-        // =========================================================================
-        // Iniciar un loop constante local de cuenta regresiva (drift-free basado en Epoch)
-        window.timerInterval = setInterval(() => {
-            if (!roomId) return;
-            const timerSeconds = state.metadata.timerSeconds !== undefined ? state.metadata.timerSeconds : 300;
-            const timerState = state.metadata.timerState || 'paused';
-            const timerLastUpdated = state.metadata.timerLastUpdated || 0;
-
-            const displayEl = document.getElementById('timer-display');
-            const widgetEl = document.getElementById('canvas-timer-widget');
-            const toggleIconEl = document.getElementById('timer-toggle-icon');
-
-            if (!displayEl) return;
-
-            if (timerState === 'running') {
-                toggleIconEl.className = "fas fa-pause text-[10px] text-emerald-400";
-                
-                // Calcular tiempo restante exacto basado en la diferencia temporal
-                const elapsedSinceUpdate = Math.floor((Date.now() - timerLastUpdated) / 1000);
-                const secsLeft = Math.max(0, timerSeconds - elapsedSinceUpdate);
-
-                // Actualizar UI
-                displayEl.innerHTML = `<i class="fas fa-stopwatch text-[11px] text-emerald-400 animate-pulse"></i> ${formatSecondsToMMSS(secsLeft)}`;
-
-                // Advertencia visual (< 1 minuto parpadea en rojo)
-                if (secsLeft < 60 && secsLeft > 0) {
-                    widgetEl.classList.add('timer-warning');
-                    displayEl.classList.remove('text-[#f1c22d]');
-                    displayEl.classList.add('text-red-400');
-                } else {
-                    widgetEl.classList.remove('timer-warning');
-                    displayEl.classList.remove('text-red-400');
-                    displayEl.classList.add('text-[#f1c22d]');
-                }
-
-                // Alerta de Conclusión (Al llegar a 00:00)
-                if (secsLeft === 0) {
-                    widgetEl.classList.remove('timer-warning');
-                    displayEl.classList.remove('text-red-400');
-                    displayEl.classList.add('text-[#f1c22d]');
-                    
-                    // Pausar estado de forma colectiva (Evitar loops interminables de alertas)
-                    window.saveMetadataToCloud('timerState', 'paused');
-                    window.saveMetadataToCloud('timerSeconds', 0);
-                    window.saveMetadataToCloud('timerLastUpdated', Date.now());
-                    
-                    // Lanzar aviso modal estilizado corporativo
-                    showMsg("⏱️ ¡Tiempo Concluido!", "La sesión de lluvia de ideas ha finalizado. Es hora de debatir, sintetizar y avanzar con el Pitch Canvas.");
-                }
-            } else {
-                // Estado Pausado o Detenido
-                toggleIconEl.className = "fas fa-play text-[10px] text-slate-400";
-                widgetEl.classList.remove('timer-warning');
-                displayEl.classList.remove('text-red-400');
-                displayEl.classList.add('text-[#f1c22d]');
-                displayEl.innerHTML = `<i class="fas fa-stopwatch text-[11px] text-[#f1c22d]"></i> ${formatSecondsToMMSS(timerSeconds)}`;
-            }
-        }, 1000);
-
-        function formatSecondsToMMSS(totalSeconds) {
-            const m = Math.floor(totalSeconds / 60);
-            const s = totalSeconds % 60;
-            return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
-        }
-
-        // Sincronizar UI de inicio al cambiar de metadatos de Firebase
-        function syncTimerDisplay() {
-            if (!roomId) return;
-            const timerState = state.metadata.timerState || 'paused';
-            const toggleIconEl = document.getElementById('timer-toggle-icon');
-            if (toggleIconEl) {
-                if (timerState === 'running') {
-                    toggleIconEl.className = "fas fa-pause text-[10px] text-emerald-400";
-                } else {
-                    toggleIconEl.className = "fas fa-play text-[10px] text-slate-400";
-                }
-            }
-        }
-
-        // Acción: Reproducir / Pausar
-        window.toggleTimer = function() {
-            if (!roomId) return;
-            const currentSeconds = state.metadata.timerSeconds !== undefined ? state.metadata.timerSeconds : 300;
-            const currentState = state.metadata.timerState || 'paused';
-            const timerLastUpdated = state.metadata.timerLastUpdated || 0;
-
-            if (currentState === 'running') {
-                // Pausar: Calcular los segundos reales restantes consumidos hasta este instante
-                const elapsed = Math.floor((Date.now() - timerLastUpdated) / 1000);
-                const remaining = Math.max(0, currentSeconds - elapsed);
-                
-                window.saveMetadataToCloud('timerState', 'paused');
-                window.saveMetadataToCloud('timerSeconds', remaining);
-                window.saveMetadataToCloud('timerLastUpdated', Date.now());
-            } else {
-                // Iniciar: Settear base de tiempo Epoch actual
-                if (currentSeconds <= 0) {
-                    showMsg("Asignar tiempo", "Suma minutos con los botones '+1m' o '+5m' para poder iniciar el temporizador.");
-                    return;
-                }
-                window.saveMetadataToCloud('timerState', 'running');
-                window.saveMetadataToCloud('timerLastUpdated', Date.now());
-            }
-        };
-
-        // Acción: Añadir Duración
-        window.changeTimerDuration = function(amountInSeconds) {
-            if (!roomId) return;
-            const currentSeconds = state.metadata.timerSeconds !== undefined ? state.metadata.timerSeconds : 300;
-            const currentState = state.metadata.timerState || 'paused';
-            const timerLastUpdated = state.metadata.timerLastUpdated || 0;
-
-            if (currentState === 'running') {
-                // Si está corriendo, recalculamos los segundos consumidos y sumamos al saldo restante
-                const elapsed = Math.floor((Date.now() - timerLastUpdated) / 1000);
-                const remaining = Math.max(0, currentSeconds - elapsed);
-                
-                window.saveMetadataToCloud('timerSeconds', remaining + amountInSeconds);
-                window.saveMetadataToCloud('timerLastUpdated', Date.now());
-            } else {
-                window.saveMetadataToCloud('timerSeconds', currentSeconds + amountInSeconds);
-            }
-        };
-
-        // Acción: Reiniciar (Por defecto 5 minutos / 300 segundos)
-        window.resetTimer = function() {
-            if (!roomId) return;
-            window.saveMetadataToCloud('timerState', 'paused');
-            window.saveMetadataToCloud('timerSeconds', 300); // 5 Minutos
-            window.saveMetadataToCloud('timerLastUpdated', Date.now());
-        };
-        // =========================================================================
 
         // RENDERIZADO DEL CATÁLOGO DE SALAS (LOBBY DE ADMIN)
         function renderRooms() {
@@ -1840,14 +1934,14 @@
                 // Renderizar el tag en la tarjeta
                 const tagClass = tagColorMap[room.tagColor || 'blue'];
                 const tagHtml = room.tagText ? `
-                    <span class="inline-flex items-center gap-1 ${tagClass} border text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider text-left">
+                    <span class="inline-flex items-center gap-1 ${tagClass} border text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
                         ${room.tagText}
                     </span>
                 ` : '';
 
                 // Renderizar el nombre de la idea en la tarjeta
                 const ideaHtml = `
-                    <div class="text-xs text-slate-400 mt-2.5 flex items-center gap-1.5 font-medium min-w-0 bg-blue-950/25 p-2 rounded-xl border border-blue-900/10 text-left">
+                    <div class="text-xs text-slate-400 mt-2.5 flex items-center gap-1.5 font-medium min-w-0 bg-blue-950/25 p-2 rounded-xl border border-blue-900/10">
                         <i class="fas fa-lightbulb text-[#f1c22d] text-[10px] shrink-0"></i>
                         <span class="truncate" title="${room.ideaTitle || 'Sin idea definida'}">
                             Idea: <strong class="text-slate-300 font-semibold">${room.ideaTitle || 'Sin idea definida'}</strong>
@@ -1880,4 +1974,479 @@
                 let actionButtonsHtml = '';
                 if (state.currentTab === 'active') {
                     actionButtonsHtml = `
-                        <a href="#${room.id}" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-colors
+                        <a href="#${room.id}" class="w-full bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-colors flex items-center justify-center gap-1.5 shadow-md no-drag">
+                            <i class="fas fa-sign-in-alt"></i> Entrar a colaborar
+                        </a>
+                        <div class="grid grid-cols-3 gap-1.5 mt-1.5 no-drag">
+                            <button onclick="window.exportSessionsToCSV('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1" title="Exportar reporte Excel de actividad">
+                                <i class="fas fa-file-excel text-emerald-500"></i> Excel
+                            </button>
+                            <button onclick="window.exportSessionsToPDF('${room.id}')" class="bg-blue-950/60 hover:bg-blue-900 text-slate-300 hover:text-white py-1.5 px-2 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1" title="Descargar asistencia en PDF">
+                                <i class="fas fa-file-pdf text-red-500"></i> Reporte
+                            </button>
+                            <button onclick="window.archiveRoom('${room.id}')" class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-500 py-1.5 px-2 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1" title="Archivar esta sala">
+                                <i class="fas fa-archive"></i> Archivar
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    actionButtonsHtml = `
+                        <div class="grid grid-cols-2 gap-2 mt-2 no-drag">
+                            <button onclick="window.restoreRoom('${room.id}')" class="w-full bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-emerald-400 font-extrabold py-2 px-3 rounded-xl text-xs text-center transition-all flex items-center justify-center gap-1.5">
+                                <i class="fas fa-trash-restore"></i> Reactivar
+                            </button>
+                            <button onclick="window.deleteRoomPermanently('${room.id}')" class="w-full bg-red-600/15 hover:bg-red-600/25 border border-red-500/30 text-red-400 font-extrabold py-2 px-3 rounded-xl text-xs text-center transition-all flex items-center justify-center gap-1.5">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start gap-3">
+                            <div class="flex items-center gap-2 overflow-hidden flex-grow">
+                                ${gripIconHtml}
+                                <div class="flex flex-col gap-1 overflow-hidden">
+                                    <h3 class="text-white font-bold text-base leading-snug truncate ${room.archived ? 'text-slate-400 line-through' : ''}" title="${room.name}">${room.name}</h3>
+                                    <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                        ${tagHtml}
+                                    </div>
+                                </div>
+                                ${!room.archived ? `
+                                <button onclick="window.openRenameRoomModal('${room.id}')" class="text-slate-500 hover:text-[#50a8f3] transition-colors p-1 no-drag self-start" title="Editar nombre de la sala o etiquetas">
+                                    <i class="fas fa-pencil-alt text-[10px]"></i>
+                                </button>
+                                ` : ''}
+                            </div>
+                            <span class="text-[9px] font-mono font-bold bg-blue-950 border border-blue-900/60 text-[#50a8f3] px-2 py-0.5 rounded uppercase tracking-wider shrink-0">#${room.id.split('-')[1] || room.id}</span>
+                        </div>
+                        
+                        <!-- MOSTRAR LA IDEA DEL TEAM -->
+                        ${ideaHtml}
+
+                        <p class="text-[10px] text-slate-500 mt-2">ID: ${room.id}</p>
+                        
+                        <div class="flex gap-4 mt-3 mb-2">
+                            <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                                <i class="fas fa-sticky-note text-[#f1c22d]"></i>
+                                <span class="font-bold text-white">${roomNotesCount}</span> notas
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                                <i class="fas fa-users text-[#50a8f3]"></i>
+                                <span class="font-bold text-white">${roomActiveCollabs.length}</span> activos
+                            </div>
+                        </div>
+
+                        <!-- Bloque de Integrantes Conectados Directamente en la Tarjeta -->
+                        <div class="mt-3 border-t border-blue-900/40 pt-3 mb-4">
+                            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">En línea ahora:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${activeNamesHtml}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Controles e Informes en la Base de la Tarjeta -->
+                    <div class="flex flex-col gap-2 pt-3 border-t border-blue-900/40">
+                        ${actionButtonsHtml}
+                    </div>
+                `;
+                
+                // Evitar que arrastrar desde los botones o inputs mueva la tarjeta
+                card.querySelectorAll('.no-drag').forEach(el => {
+                    el.addEventListener('dragstart', (e) => e.stopPropagation());
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // RENDERIZADO DINÁMICO DE NOTAS ADHESIVAS FILTRADAS POR SALA (Regla 2)
+        function renderNotes() {
+            document.querySelectorAll('.notes-container').forEach(c => c.innerHTML = '');
+
+            // Filtrar notas pertenecientes a esta sala activa en la memoria (Regla 2)
+            const roomNotes = state.notes.filter(n => n.roomId === roomId);
+
+            roomNotes.forEach(note => {
+                const container = document.querySelector(`#block-${note.blockId} .notes-container`);
+                if (!container) return;
+
+                const postIt = document.createElement('div');
+                postIt.id = note.id;
+                postIt.draggable = true;
+                postIt.className = `post-it ${note.color} relative group`;
+                postIt.dataset.rawText = note.text;
+                postIt.dataset.color = note.color;
+
+                postIt.addEventListener('dragstart', (ev) => {
+                    ev.dataTransfer.setData("text/plain", ev.target.id);
+                    ev.target.classList.add('opacity-40');
+                });
+                postIt.addEventListener('dragend', (ev) => {
+                    ev.target.classList.remove('opacity-40');
+                });
+
+                const formattedText = note.text.replace(/\n/g, '<br>');
+
+                postIt.innerHTML = `
+                    <div class="post-it-content pr-6 font-semibold text-slate-800 text-[13px] leading-relaxed">${formattedText}</div>
+                    <div class="absolute top-1.5 right-1.5 flex gap-[3px] opacity-0 group-hover:opacity-100 transition-opacity bg-white/70 backdrop-blur-xs rounded-md px-1.5 py-0.5 no-print border border-slate-200 shadow-sm">
+                        <i class="fas fa-pencil-alt text-slate-600 hover:text-[#50a8f3] cursor-pointer text-[10px] p-0.5 transition-colors" onclick="editPostIt(this)" title="Editar nota"></i>
+                        <i class="fas fa-trash text-slate-600 hover:text-red-500 cursor-pointer text-[10px] p-0.5 transition-colors" onclick="window.deleteNoteFromCloud('${note.id}')" title="Eliminar nota"></i>
+                    </div>
+                `;
+                container.appendChild(postIt);
+            });
+        }
+
+        // RENDERIZADO DE AVATARES DE PRESENCIA FILTRADOS POR SALA (Regla 2)
+        function renderPresence() {
+            const container = document.getElementById('collaborators-container');
+            container.innerHTML = '';
+
+            const roomCollabs = state.presence.filter(p => p.roomId === roomId);
+
+            roomCollabs.forEach(collab => {
+                const isMe = collab.userId === myUserId;
+                const initials = (collab.userName || 'A').charAt(0).toUpperCase();
+                
+                const avatar = document.createElement('div');
+                avatar.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white border-2 border-[#060c1d] uppercase relative cursor-pointer`;
+                
+                const colors = ['bg-amber-500', 'bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-indigo-500', 'bg-violet-500'];
+                const colorIdx = initials.charCodeAt(0) % colors.length;
+                avatar.classList.add(colors[colorIdx]);
+                
+                avatar.innerText = initials;
+                avatar.title = `${collab.userName} ${isMe ? '(Tú)' : ''}`;
+                
+                container.appendChild(avatar);
+            });
+        }
+
+        // Sincronizar inputs centrales sin interrumpir la escritura activa del usuario
+        function syncHeaderInputs() {
+            const ideaInput = document.getElementById('input-idea');
+            const teamInput = document.getElementById('input-team');
+            
+            if (document.activeElement !== ideaInput) {
+                ideaInput.value = state.metadata.ideaTitle || '';
+            }
+            if (document.activeElement !== teamInput) {
+                teamInput.value = state.metadata.teamNames || '';
+            }
+        }
+
+        // CONFIGURAR ESCUCHAS DE INPUTS DIRECTOS
+        document.getElementById('input-idea').addEventListener('input', (e) => {
+            window.saveMetadataToCloud('ideaTitle', e.target.value);
+        });
+        document.getElementById('input-team').addEventListener('input', (e) => {
+            window.saveMetadataToCloud('teamNames', e.target.value);
+        });
+
+        // MANEJO DE NOMBRES DE COOPERACIÓN AL INICIAR
+        window.promptForName = function() {
+            document.getElementById('username-input').value = myName;
+            document.getElementById('username-modal').classList.remove('hidden');
+        };
+
+        window.saveCollaboratorName = function() {
+            const val = document.getElementById('username-input').value.trim();
+            if (!val) {
+                showMsg("Nombre requerido", "Por favor introduce un nombre válido para que tu equipo te reconozca de manera inequívoca.");
+                return;
+            }
+            myName = val;
+            localStorage.setItem('wonkup_user_name', myName);
+            document.getElementById('username-modal').classList.add('hidden');
+            
+            if (useFirebase) {
+                updatePresenceInCloud();
+            } else {
+                const idx = state.presence.findIndex(p => p.userId === myUserId);
+                if (idx !== -1) {
+                    state.presence[idx].userName = myName;
+                    renderPresence();
+                }
+            }
+
+            // Inicializar Sincronización de Firebase y navegación
+            setupFirebaseSync();
+            window.handleNavigationState();
+        };
+
+        // REGISTRAR SALIDA ANTES DE CERRAR LA VENTANA
+        window.addEventListener('beforeunload', () => {
+            if (window.currentRoomSessionId) {
+                window.writeSessionActivity(window.currentRoomSessionId, 'exit');
+            }
+        });
+
+        // NAVEGACIÓN DENTRO DE LA APLICACIÓN (Lobby vs Canvas)
+        window.handleNavigationState = function() {
+            // Verificar si el nombre está registrado primero
+            if (!myName) {
+                window.promptForName();
+                return;
+            }
+
+            const hash = window.location.hash.substring(1);
+            const lobbyView = document.getElementById('lobby-view');
+            const canvasView = document.getElementById('canvas-view');
+            
+            const headerLabel = document.getElementById('header-view-label');
+            const canvasHeaderTools = document.getElementById('canvas-header-tools');
+            const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
+            const pdfExportBtn = document.getElementById('pdf-export-btn');
+
+            if (!hash || hash === 'lobby' || hash === '') {
+                // VISTA DEL LOBBY
+                roomId = null;
+                lobbyView.classList.remove('hidden');
+                canvasView.classList.add('hidden');
+                
+                headerLabel.innerText = "Lobby de Salas";
+                headerLabel.classList.remove('hidden');
+                canvasHeaderTools.classList.add('hidden');
+                backToLobbyBtn.classList.add('hidden');
+                pdfExportBtn.classList.add('hidden');
+                
+                renderRooms();
+            } else {
+                // VISTA DEL CANVAS DE SALA ACTIVA
+                roomId = hash;
+                lobbyView.classList.add('hidden');
+                canvasView.classList.remove('hidden');
+                
+                headerLabel.classList.add('hidden');
+                canvasHeaderTools.classList.remove('hidden');
+                backToLobbyBtn.classList.remove('hidden');
+                pdfExportBtn.classList.remove('hidden');
+
+                document.getElementById('room-id-display').innerText = `SALA: #${roomId.split('-')[1] || roomId.toUpperCase()}`;
+                
+                // Buscar el nombre descriptivo de la sala si ya cargó en el Lobby
+                const currentRoom = state.rooms.find(r => r.id === roomId);
+                document.getElementById('canvas-room-badge').innerText = currentRoom ? `Sala: ${currentRoom.name}` : `Sala: ${roomId}`;
+
+                // Iniciar Sincronización de datos de la sala
+                window.syncRoomCanvasData();
+            }
+        };
+
+        // Escuchar cambios de hash en la URL para navegar
+        window.addEventListener('hashchange', window.handleNavigationState);
+
+        // Inicializar
+        if (!myName) {
+            window.promptForName();
+        } else {
+            setupFirebaseSync();
+            window.handleNavigationState();
+        }
+
+        // Vincular funciones globales
+        window.setupFirebaseSync = setupFirebaseSync;
+    </script>
+
+    <script>
+        // LÓGICA DE INTERFAZ Y DRAG OVER (NATIVO COMPATIBLE CON FIREBASE)
+        let currentTargetBlock = null;
+        let selectedColor = 'bg-yellow-200';
+        let editingPostIt = null; 
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('dragover');
+        }
+
+        function dragLeave(ev) {
+            ev.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(ev, blockId) {
+            ev.preventDefault();
+            const blockElement = document.getElementById(`block-${blockId}`);
+            if (blockElement) {
+                blockElement.classList.remove('dragover');
+            }
+            const noteId = ev.dataTransfer.getData("text/plain");
+            
+            // Invocar la mudanza asíncrona colaborativa en tiempo real
+            if (noteId && window.moveNoteInCloud) {
+                window.moveNoteInCloud(noteId, blockId);
+            }
+        }
+
+        // CONTROLADOR DE ALERTAS DE CONFIRMACIÓN CORPORATIVOS (REEMPLAZA CONFIRM NATIVO)
+        window.showConfirm = function(title, body, confirmCallback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-body').innerText = body;
+            
+            const actionBtn = document.getElementById('confirm-action-btn');
+            
+            // Clona el botón de acción para remover los eventos onclick previos acumulados
+            const newActionBtn = actionBtn.cloneNode(true);
+            actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
+            
+            newActionBtn.addEventListener('click', () => {
+                confirmCallback();
+                closeModal('confirm-modal');
+            });
+            
+            openModal('confirm-modal');
+        };
+
+        function showMsg(title, body) {
+            document.getElementById('msg-title').innerText = title;
+            document.getElementById('msg-body').innerText = body;
+            document.getElementById('msg-modal').classList.remove('hidden');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function navigateToLobby() {
+            // Registrar salida de sesión de actividad formalmente
+            if (window.currentRoomSessionId && window.writeSessionActivity) {
+                window.writeSessionActivity(window.currentRoomSessionId, 'exit');
+            }
+            if (window.currentSessionInterval) clearInterval(window.currentSessionInterval);
+            
+            window.location.hash = '';
+        }
+
+        // Configuración de colores del modal
+        document.querySelectorAll('.color-pick-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                selectedColor = e.target.getAttribute('data-color');
+                document.querySelectorAll('.color-pick-btn').forEach(b => b.classList.remove('border-slate-800', 'scale-110'));
+                e.target.classList.add('border-slate-800', 'scale-110');
+            });
+        });
+
+        function selectColorForModal(colorClass) {
+            selectedColor = colorClass;
+            document.querySelectorAll('.color-pick-btn').forEach(b => {
+                if(b.getAttribute('data-color') === colorClass) {
+                    b.classList.add('border-slate-800', 'scale-110');
+                } else {
+                    b.classList.remove('border-slate-800', 'scale-110');
+                }
+            });
+        }
+
+        function openNoteModal(blockId, defaultColor = 'bg-yellow-200') {
+            currentTargetBlock = blockId;
+            editingPostIt = null;
+            
+            document.getElementById('modal-title').innerText = 'Añadir Nueva Nota';
+            document.getElementById('submit-btn').innerText = 'Añadir';
+            document.getElementById('manual-note-input').value = '';
+            
+            selectColorForModal(defaultColor);
+            openModal('add-note-modal');
+            setTimeout(() => document.getElementById('manual-note-input').focus(), 100);
+        }
+
+        function editPostIt(editBtn) {
+            const postIt = editBtn.closest('.post-it');
+            editingPostIt = postIt; 
+            currentTargetBlock = null;
+            
+            document.getElementById('modal-title').innerText = 'Editar Idea';
+            document.getElementById('submit-btn').innerText = 'Guardar Cambios';
+            
+            const currentText = postIt.dataset.rawText || '';
+            const currentColor = postIt.dataset.color || 'bg-yellow-200';
+            
+            document.getElementById('manual-note-input').value = currentText;
+            selectColorForModal(currentColor);
+            
+            openModal('add-note-modal');
+            setTimeout(() => document.getElementById('manual-note-input').focus(), 100);
+        }
+
+        function submitManualNote() {
+            const text = document.getElementById('manual-note-input').value.trim();
+            if (!text) {
+                showMsg('Error', 'La nota no puede estar vacía. Por favor escribe algo.');
+                return;
+            }
+
+            if (editingPostIt) {
+                // Sincronizar edición con la nube
+                if (window.saveNoteToCloud) {
+                    window.saveNoteToCloud(editingPostIt.id, text, selectedColor, editingPostIt.parentNode.parentNode.id.replace('block-', ''));
+                }
+            } else {
+                // Sincronizar creación con la nube
+                if (window.saveNoteToCloud) {
+                    window.saveNoteToCloud(null, text, selectedColor, currentTargetBlock);
+                }
+            }
+
+            closeModal('add-note-modal');
+        }
+
+        // COMPARTIR LINK DE LA SALA COLABORATIVA CON GENERADOR DE QR INTEGRADO
+        function copyRoomLink() {
+            const shareUrl = window.location.href;
+            
+            // Sincronizar valor en el input del modal
+            document.getElementById('share-link-input').value = shareUrl;
+            
+            // Consumir el generador QR estático gratuito de QRServer
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&color=0b142c&data=${encodeURIComponent(shareUrl)}`;
+            document.getElementById('share-qr-image').src = qrImageUrl;
+            
+            // Desplegar modal de compartir
+            openModal('share-modal');
+        }
+
+        // Copiar el enlace directo desde el input del modal
+        function copyShareLinkFromInput() {
+            const input = document.getElementById('share-link-input');
+            
+            // Clipboard Guardrail fallback
+            input.select();
+            document.execCommand('copy');
+            
+            showMsg("¡Enlace Copiado!", "El enlace de acceso ha sido copiado al portapapeles. Compártelo con tu equipo para que colabore en tiempo real.");
+        }
+
+        // EXPORTACIÓN A PDF TOTALMENTE SECTORIZADA
+        function exportToPDF() {
+            const canvas = document.getElementById('pdf-canvas');
+            canvas.classList.add('exporting');
+
+            setTimeout(() => {
+                let width = canvas.offsetWidth;
+                let height = canvas.offsetHeight;
+
+                if (!width || width < 300) width = 1150;
+                if (!height || height < 300) height = 820;
+
+                const opt = {
+                    margin:       0,
+                    filename:     'Pitch_Canvas_Colaborativo_WonkUp.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true, logging: false, letterRendering: true },
+                    jsPDF:        { unit: 'px', format: [width + 20, height + 20], orientation: 'landscape', hotfixes: ['px_scaling'] }
+                };
+
+                html2pdf().set(opt).from(canvas).save().then(() => {
+                    canvas.classList.remove('exporting');
+                }).catch(err => {
+                    console.error("Error al exportar PDF:", err);
+                    canvas.classList.remove('exporting');
+                    showMsg("Exportación fallida", "No se pudo generar el documento automáticamente. Por favor, reintenta.");
+                });
+            }, 200);
+        }
+    </script>
+</body>
+</html>
