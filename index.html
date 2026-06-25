@@ -196,6 +196,15 @@
         .notes-container::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* Animación para simular propulsión de cohetes */
+        @keyframes firePropulsion {
+            0%, 100% { transform: scaleX(1); opacity: 0.9; }
+            50% { transform: scaleX(1.3); opacity: 1; filter: drop-shadow(0 0 4px #ef4444); }
+        }
+        .rocket-fire {
+            animation: firePropulsion 0.15s infinite;
+        }
     </style>
 </head>
 <body class="bg-[#0b142c] text-slate-800 h-screen flex flex-col overflow-hidden">
@@ -303,7 +312,9 @@
             <!-- Hero de Bienvenida -->
             <div class="text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-6 bg-[#060c1d] border border-blue-950 p-8 rounded-3xl shadow-xl">
                 <div class="max-w-xl">
-                    <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight">Cocreación de Pitch Canvas</h1>
+                    <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-2">
+                        <span>Cocreación de Pitch Canvas</span>
+                    </h1>
                     <p class="text-slate-400 text-sm mt-2 leading-relaxed">Crea salas personalizadas para tus diferentes equipos, comparte el enlace de acceso y supervisa el progreso colaborativo en tiempo real.</p>
                 </div>
                 <!-- Input rápido para crear sala con selector de etiquetas de colores -->
@@ -328,10 +339,59 @@
                 </div>
             </div>
 
+            <!-- SECCIÓN: CAMPAÑA / CONQUISTA LUNAR (SPACE RACE GAMIFICADA) -->
+            <div class="bg-[#060c1d] border border-blue-950 p-6 rounded-3xl shadow-xl flex flex-col gap-4">
+                <div class="flex justify-between items-center flex-wrap gap-3 border-b border-blue-900/30 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xl">🚀</span>
+                        <div>
+                            <h2 class="text-base font-black text-white tracking-wide uppercase">Campaña de Conquista Lunar de Wonki</h2>
+                            <p class="text-[11px] text-slate-400 font-medium">Completa las 8 secciones participando todos los integrantes para impulsar tu cohete.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.openCompetitionSetupModal()" class="bg-blue-950/80 hover:bg-blue-900 text-slate-300 hover:text-white border border-blue-900/40 font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-1.5">
+                            <i class="fas fa-trophy text-[#f1c22d]"></i> Seleccionar Competidores
+                        </button>
+                        <button onclick="window.toggleSpaceRaceDisplay()" class="bg-[#50a8f3]/10 hover:bg-[#50a8f3]/20 border border-[#50a8f3]/20 text-[#50a8f3] font-bold text-xs px-4 py-2 rounded-xl transition-all flex items-center gap-2">
+                            <i class="fas fa-rocket"></i> <span id="spacerace-toggle-btn-text">Ver Carrera Completa</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PISTA DE CARRERAS DE CONQUISTA ESPACIAL -->
+                <div id="space-race-track-container" class="hidden relative h-72 w-full bg-gradient-to-r from-blue-950/40 via-purple-950/20 to-slate-950/80 rounded-2xl border border-blue-900/30 overflow-hidden flex flex-col justify-between py-6 px-16 shadow-inner select-none transition-all duration-300">
+                    <!-- Decoración Estelar -->
+                    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/10 via-slate-900/0 to-transparent pointer-events-none"></div>
+                    <div class="absolute top-10 left-12 w-2 h-2 rounded-full bg-white opacity-40 animate-ping"></div>
+                    <div class="absolute bottom-16 right-32 w-1.5 h-1.5 rounded-full bg-white opacity-30 animate-pulse"></div>
+                    
+                    <!-- Tierra (Izquierda) -->
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-center shrink-0">
+                        <div class="text-3xl filter drop-shadow-[0_0_8px_#50a8f3] animate-bounce">🌍</div>
+                        <p class="text-[9px] font-black text-[#50a8f3] tracking-widest mt-1 uppercase">TIERRA</p>
+                    </div>
+
+                    <!-- Luna (Derecha) -->
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-center shrink-0">
+                        <div class="text-3.5xl filter drop-shadow-[0_0_12px_#f1c22d] animate-pulse">🌕</div>
+                        <p class="text-[9px] font-black text-[#f1c22d] tracking-widest mt-1 uppercase">LUNA</p>
+                    </div>
+
+                    <!-- Línea de Meta (Banderas) -->
+                    <div class="absolute right-14 inset-y-0 w-px border-r-2 border-dashed border-white/10 pointer-events-none"></div>
+
+                    <!-- Contenedor dinámico de cohetes alineados verticalmente -->
+                    <div id="space-race-lanes" class="flex flex-col justify-around h-full w-full relative pl-8 pr-16 gap-3">
+                        <!-- Las naves de los equipos se inyectarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
             <!-- CONTROLES DE ADMINISTRACIÓN REPARADOS CONTRA DESBORDES (GRID) -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-[#060c1d] border border-blue-950 p-4 rounded-2xl shadow-lg w-full items-center">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-[#060c1d] border border-blue-950 p-4 rounded-2xl shadow-lg w-full items-center">
                 <!-- Pestañas Activas / Archivadas -->
-                <div class="lg:col-span-4 flex bg-[#0b142c] p-1 rounded-xl border border-blue-900/30 w-full">
+                <div class="md:col-span-4 flex bg-[#0b142c] p-1 rounded-xl border border-blue-900/30 w-full">
                     <button id="tab-active" onclick="window.switchTab('active')" class="flex-grow px-3 py-2 rounded-lg text-xs font-black transition-all bg-[#50a8f3] text-white whitespace-nowrap">
                         Salas Activas <span id="count-active" class="ml-1 bg-white/20 px-1.5 py-0.5 rounded text-[10px]">0</span>
                     </button>
@@ -341,9 +401,9 @@
                 </div>
                 
                 <!-- Buscador y selectores integrados en rejilla fluida para evitar superposiciones -->
-                <div class="lg:col-span-8 flex flex-col sm:flex-row gap-3 w-full items-center justify-end flex-wrap sm:flex-nowrap">
+                <div class="md:col-span-8 flex flex-col sm:flex-row gap-3 w-full items-center justify-end flex-wrap sm:flex-nowrap">
                     <!-- Selector de Ordenación (Sort) -->
-                    <div class="relative w-full sm:w-1/3 max-w-full sm:max-w-[170px] lg:max-w-[160px] xl:max-w-[170px]">
+                    <div class="relative w-full sm:w-44 lg:w-40 xl:w-44">
                         <select id="sort-rooms-select" onchange="window.handleSortChange(this.value)" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2.5 px-3 pr-8 text-xs text-slate-300 font-bold focus:outline-none focus:border-[#50a8f3] appearance-none transition-all cursor-pointer">
                             <option value="custom">Orden personalizado</option>
                             <option value="date-desc">Recientes primero</option>
@@ -359,7 +419,7 @@
                     </div>
 
                     <!-- Selector de Etiquetas Dinámicas -->
-                    <div class="relative w-full sm:w-1/3 max-w-full sm:max-w-[170px] lg:max-w-[160px] xl:max-w-[170px]">
+                    <div class="relative w-full sm:w-44 lg:w-40 xl:w-44">
                         <select id="filter-tag-select" onchange="window.handleTagFilter(this.value)" class="w-full bg-[#0b142c] border border-blue-900/40 rounded-xl py-2.5 px-3 pr-8 text-xs text-slate-300 font-bold focus:outline-none focus:border-[#50a8f3] appearance-none transition-all cursor-pointer">
                             <option value="all">Todas las etiquetas</option>
                         </select>
@@ -369,7 +429,7 @@
                     </div>
 
                     <!-- Buscador de salas (Por Equipo o Idea) -->
-                    <div class="relative w-full sm:w-1/3 max-w-full sm:max-w-[240px] lg:max-w-[200px] xl:max-w-[240px]">
+                    <div class="relative w-full sm:w-56 lg:w-48 xl:w-56">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
                             <i class="fas fa-search text-xs"></i>
                         </span>
@@ -405,7 +465,80 @@
         <!-- LIENZO DEL PDF (Sincronizado y Responsivo) -->
         <div id="pdf-canvas" class="bg-white shadow-2xl p-6 rounded-3xl canvas-container flex flex-col gap-5 my-auto transition-all duration-300">
             
-            <!-- Cabecera del Documento (Diseño Responsivo que se mantiene en fila durante la exportación) -->
+            <!-- BARRA DE RECOMPENSA GAMIFICADA DE WONKI ASTRONAUTA (No se imprime) -->
+            <div id="wonki-gamification-bar" class="no-print bg-gradient-to-r from-blue-950 via-[#0b142c] to-indigo-950 border border-blue-900/40 rounded-2xl p-3 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <!-- Wonki Astronauta SVG (Rediseñado según la imagen del usuario) -->
+                    <div class="w-12 h-12 shrink-0">
+                        <svg viewBox="0 0 100 100" class="w-full h-full animate-bounce">
+                            <!-- Jetpack de Wonki (Booster trasero) -->
+                            <rect x="25" y="45" width="50" height="25" rx="8" fill="#1e3a8a" stroke="#1d4ed8" stroke-width="1.5"/>
+                            <path d="M 22,65 Q 16,85 10,75 Z" fill="#f97316"/>
+                            <path d="M 22,65 Q 16,85 10,75 Z" fill="#eab308" class="rocket-fire" transform="scale(0.9) translate(2, 2)"/>
+                            <path d="M 78,65 Q 84,85 90,75 Z" fill="#f97316"/>
+                            <path d="M 78,65 Q 84,85 90,75 Z" fill="#eab308" class="rocket-fire" transform="scale(0.9) translate(6, 2)"/>
+                            
+                            <!-- Casco Esférico -->
+                            <circle cx="50" cy="35" r="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+                            <path d="M 26,30 A 25,25 0 0,1 74,30" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+                            <path d="M 22,35 A 28,28 0 0,0 78,35" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+                            
+                            <!-- Visor del Casco -->
+                            <ellipse cx="50" cy="35" rx="20" ry="14" fill="#0b1329" stroke="#1e293b" stroke-width="2"/>
+                            <!-- Brillo en el Visor -->
+                            <path d="M 33,30 Q 50,19 67,30 Q 50,23 33,30" fill="#ffffff" opacity="0.15"/>
+                            
+                            <!-- Cara de Wonki (Conejito/Simio amigable) -->
+                            <ellipse cx="50" cy="37" rx="13" ry="10" fill="#d97706"/>
+                            <!-- Ojos Celestes Brillantes -->
+                            <ellipse cx="44" cy="36" rx="3.5" ry="5.5" fill="#38bdf8"/>
+                            <circle cx="42.5" cy="34" r="1.2" fill="#ffffff"/>
+                            <ellipse cx="56" cy="36" rx="3.5" ry="5.5" fill="#38bdf8"/>
+                            <circle cx="54.5" cy="34" r="1.2" fill="#ffffff"/>
+                            <!-- Sonrisa amigable -->
+                            <path d="M 46,41 Q 50,45 54,41 Z" fill="#ef4444"/>
+                            <path d="M 47,41.5 Q 50,43.5 53,41.5" fill="none" stroke="#ffffff" stroke-width="0.8"/>
+                            
+                            <!-- Cuerpo del Traje Blanco -->
+                            <path d="M 32,62 C 32,55 35,52 50,52 C 65,52 68,55 68,62 L 64,80 C 64,83 60,85 50,85 C 40,85 36,83 36,80 Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+                            
+                            <!-- Gran Logotipo de "W" con Cohete Blanco Negativo en el Pecho -->
+                            <path d="M 41,58 L 45,74 L 48,64 L 52,64 L 55,74 L 59,58 L 55,58 L 53,70 L 50,60 L 47,70 L 45,58 Z" fill="#3b82f6"/>
+                            <path d="M 50,66 L 48,72 L 52,72 Z" fill="#ffffff"/>
+                            <circle cx="50" cy="69" r="1" fill="#f97316"/>
+                            
+                            <!-- Brazos de Astronauta -->
+                            <path d="M 32,58 Q 20,44 14,48 Q 20,54 28,63" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+                            <circle cx="13" cy="46" r="5" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                            
+                            <path d="M 68,58 Q 78,63 84,58 Q 80,68 68,64" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+                            <circle cx="85" cy="57" r="5" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                            
+                            <!-- Botas -->
+                            <rect x="36" y="80" width="11" height="6" rx="3" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                            <rect x="53" y="80" width="11" height="6" rx="3" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black text-white leading-none">¡Conquista Lunar de Wonki!</p>
+                        <p class="text-[10px] text-slate-400 mt-1 leading-none">Rellena al menos una tarjeta por integrante en cada bloque para impulsar a Wonki.</p>
+                    </div>
+                </div>
+                <div class="flex-grow max-w-md hidden md:block">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-bold mb-1">
+                        <span id="canvas-progress-text">Progreso: 0% (0 de 8 bloques)</span>
+                        <span class="text-[#f1c22d]">¡Llegada a la Luna! 🌕</span>
+                    </div>
+                    <div class="w-full bg-slate-900 border border-slate-800 rounded-full h-3 overflow-hidden p-0.5">
+                        <div id="canvas-progress-bar" class="bg-gradient-to-r from-[#50a8f3] to-[#f1c22d] h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span id="canvas-progress-badge" class="text-xs bg-[#f1c22d] text-slate-950 font-black px-3 py-1.5 rounded-xl animate-pulse">0%</span>
+                </div>
+            </div>
+
+            <!-- Cabecera del Documento (Diseñado para no romperse en el PDF) -->
             <div class="canvas-header flex flex-col md:flex-row justify-between items-center border-b-2 border-slate-100 pb-4 gap-4">
                 <!-- Título del Canvas -->
                 <div class="text-center md:text-left flex flex-col justify-center min-w-[150px]">
@@ -646,9 +779,53 @@
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 m-4 border border-blue-900/20 text-center">
             <!-- Logotipo de Bienvenida de WonkUp (logo_wonkup1.png) con fallback dinámico -->
             <div class="flex justify-center mb-6">
-                <img src="logo_wonkup1.png" alt="WonkUp Logo" class="h-14 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('modal-icon-fallback').classList.remove('hidden')">
-                <div id="modal-icon-fallback" class="hidden w-16 h-16 bg-blue-100 text-[#50a8f3] rounded-full flex items-center justify-center">
-                    <i class="fas fa-users-rectangle text-2xl"></i>
+                <!-- Wonki Astronauta SVG rediseñado según imagen -->
+                <div class="w-24 h-24 mx-auto animate-bounce">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <!-- Jetpack de Wonki -->
+                        <rect x="25" y="45" width="50" height="25" rx="8" fill="#1e3a8a" stroke="#1d4ed8" stroke-width="1.5"/>
+                        <path d="M 22,65 Q 16,85 10,75 Z" fill="#f97316"/>
+                        <path d="M 22,65 Q 16,85 10,75 Z" fill="#eab308" class="rocket-fire" transform="scale(0.9) translate(2, 2)"/>
+                        <path d="M 78,65 Q 84,85 90,75 Z" fill="#f97316"/>
+                        <path d="M 78,65 Q 84,85 90,75 Z" fill="#eab308" class="rocket-fire" transform="scale(0.9) translate(6, 2)"/>
+                        
+                        <!-- Casco -->
+                        <circle cx="50" cy="35" r="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+                        <path d="M 26,30 A 25,25 0 0,1 74,30" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+                        <path d="M 22,35 A 28,28 0 0,0 78,35" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+                        
+                        <!-- Visor -->
+                        <ellipse cx="50" cy="35" rx="20" ry="14" fill="#0b1329" stroke="#1e293b" stroke-width="2"/>
+                        <path d="M 33,30 Q 50,19 67,30 Q 50,23 33,30" fill="#ffffff" opacity="0.15"/>
+                        
+                        <!-- Cara de Wonki -->
+                        <ellipse cx="50" cy="37" rx="13" ry="10" fill="#d97706"/>
+                        <ellipse cx="44" cy="36" rx="3.5" ry="5.5" fill="#38bdf8"/>
+                        <circle cx="42.5" cy="34" r="1.2" fill="#ffffff"/>
+                        <ellipse cx="56" cy="36" rx="3.5" ry="5.5" fill="#38bdf8"/>
+                        <circle cx="54.5" cy="34" r="1.2" fill="#ffffff"/>
+                        <path d="M 46,41 Q 50,45 54,41 Z" fill="#ef4444"/>
+                        <path d="M 47,41.5 Q 50,43.5 53,41.5" fill="none" stroke="#ffffff" stroke-width="0.8"/>
+                        
+                        <!-- Traje Blanco -->
+                        <path d="M 32,62 C 32,55 35,52 50,52 C 65,52 68,55 68,62 L 64,80 C 64,83 60,85 50,85 C 40,85 36,83 36,80 Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+                        
+                        <!-- Logotipo W con cohete -->
+                        <path d="M 41,58 L 45,74 L 48,64 L 52,64 L 55,74 L 59,58 L 55,58 L 53,70 L 50,60 L 47,70 L 45,58 Z" fill="#3b82f6"/>
+                        <path d="M 50,66 L 48,72 L 52,72 Z" fill="#ffffff"/>
+                        <circle cx="50" cy="69" r="1" fill="#f97316"/>
+                        
+                        <!-- Brazos y Guantes -->
+                        <path d="M 32,58 Q 20,44 14,48 Q 20,54 28,63" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+                        <circle cx="13" cy="46" r="5" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                        
+                        <path d="M 68,58 Q 78,63 84,58 Q 80,68 68,64" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+                        <circle cx="85" cy="57" r="5" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                        
+                        <!-- Botas -->
+                        <rect x="36" y="80" width="11" height="6" rx="3" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                        <rect x="53" y="80" width="11" height="6" rx="3" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/>
+                    </svg>
                 </div>
             </div>
             <h3 class="text-xl font-extrabold text-slate-900 mb-2">¡Bienvenido al Pitch Canvas Colaborativo!</h3>
@@ -733,6 +910,30 @@
             <div class="flex justify-end gap-2.5">
                 <button onclick="closeModal('rename-room-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
                 <button id="rename-confirm-btn" class="bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Seleccionar Equipos Competidores (Space Race setup) -->
+    <div id="competition-setup-modal" class="hidden fixed inset-0 z-[115] bg-[#060c1d]/90 flex justify-center items-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 m-4 border border-blue-900/20 relative flex flex-col max-h-[85vh]">
+            <button onclick="closeModal('competition-setup-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+            <div class="w-12 h-12 bg-yellow-50 text-[#f1c22d] rounded-full flex items-center justify-center mx-auto mb-3 shrink-0">
+                <i class="fas fa-trophy text-xl"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 text-center mb-1">Seleccionar Competidores</h3>
+            <p class="text-xs text-slate-500 text-center mb-4">Elige hasta 6 equipos activos para que compitan en la pista espacial de Conquista Lunar en tiempo real.</p>
+            
+            <!-- Listado de Equipos con Checkbox -->
+            <div id="competition-rooms-list" class="flex-grow overflow-y-auto space-y-2.5 pr-1 max-h-[40vh] mb-5">
+                <!-- Se poblará dinámicamente -->
+            </div>
+
+            <div class="flex justify-end gap-2.5 shrink-0">
+                <button onclick="closeModal('competition-setup-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">Cancelar</button>
+                <button onclick="window.saveCompetitionSetup()" class="bg-[#50a8f3] hover:bg-[#3ca0f0] text-white font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md">Guardar Competidores</button>
             </div>
         </div>
     </div>
@@ -860,7 +1061,8 @@
             currentTab: 'active', // Pestaña de lobby por defecto
             searchQuery: '', // Buscador por defecto
             selectedTagFilter: 'all', // Filtro por etiqueta por defecto
-            sortOption: 'custom' // Filtro por orden por defecto
+            sortOption: 'custom', // Filtro por orden por defecto
+            competingRoomIds: [] // Lista de IDs de salas seleccionadas para competir en Space Race
         };
 
         // SUSCRIPCIONES Y HANDLERS DE FIRESTORE (Regla 1, 2, 3)
@@ -898,6 +1100,7 @@
                 const notesColRef = collection(db, 'artifacts', appId, 'public', 'data', 'notes');
                 const presenceColRef = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
                 const sessionsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions');
+                const competitionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'competition', 'active_teams');
 
                 // 1. Sincronizar el catálogo de salas ordenados por el índice 'order' personalizado
                 onSnapshot(roomsColRef, (snapshot) => {
@@ -909,6 +1112,7 @@
                         return (b.createdAt || 0) - (a.createdAt || 0);
                     });
                     renderRooms();
+                    renderSpaceRace();
                     // Si estamos actualmente en el lienzo de trabajo, actualizar el badge de nombre de sala de forma proactiva
                     if (roomId) {
                         const currentRoom = state.rooms.find(r => r.id === roomId);
@@ -926,8 +1130,10 @@
                     state.notes = allNotes;
                     if (roomId) {
                         renderNotes();
+                        updateCanvasGamificationProgress();
                     }
                     renderRooms();
+                    renderSpaceRace();
                 }, (error) => {
                     console.error("Error al sincronizar notas:", error);
                 });
@@ -939,6 +1145,10 @@
                     state.presence = allPresence.filter(p => p.lastActive > cutoff);
                     renderPresence();
                     renderRooms(); // Recalcular presencia en las tarjetas de sala del lobby
+                    renderSpaceRace();
+                    if (roomId) {
+                        updateCanvasGamificationProgress();
+                    }
                 });
 
                 // 4. Sincronización del histórico de sesiones de actividad (REGLA 2)
@@ -946,6 +1156,18 @@
                     state.sessions = snapshot.docs.map(doc => doc.data());
                 }, (error) => {
                     console.error("Error al sincronizar sesiones:", error);
+                });
+
+                // 5. Sincronización de la configuración activa de equipos competidores en la carrera
+                onSnapshot(competitionDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        state.competingRoomIds = docSnap.data().roomIds || [];
+                    } else {
+                        state.competingRoomIds = [];
+                    }
+                    renderSpaceRace();
+                }, (error) => {
+                    console.error("Error al sincronizar competidores:", error);
                 });
             });
         }
@@ -1038,6 +1260,7 @@
                 renderPresence();
                 syncHeaderInputs();
                 syncTimerState();
+                updateCanvasGamificationProgress();
                 return;
             }
 
@@ -1064,6 +1287,7 @@
 
             renderNotes();
             renderPresence();
+            updateCanvasGamificationProgress();
         };
 
         // LÓGICA DE AUDIO DE ALARMA NATIVA (Utiliza Web Audio API)
@@ -1111,7 +1335,7 @@
 
             clearInterval(localTimerInterval);
 
-            // Leer variables del temporizador desde Firestore
+            // Leer variables del temporizador desde el documento metadata de la sala
             const timerState = state.metadata.timerState || 'stopped';
             const timerDuration = state.metadata.timerDuration || 300; // 5m por defecto
             const timerEndTime = state.metadata.timerEndTime || 0;
@@ -1249,6 +1473,7 @@
         // INTERFAZ DE NAVEGACIÓN Y APERTURA DE MENÚS DEL RELOJ
         window.toggleTimerDropdown = function(e) {
             if (e) e.stopPropagation();
+            document.getElementById('timer-dropdown').classList.toggle('toggle-ready');
             document.getElementById('timer-dropdown').classList.toggle('hidden');
         };
 
@@ -1263,57 +1488,57 @@
             }
         });
 
-        // MOTOR LOCAL DE COCREACIÓN (MOCK INTERACTIVO EN CASO DE NO DETECTAR FIREBASE)
-        function setupMockSync() {
-            document.getElementById('sync-status').className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-            document.getElementById('sync-status').title = "Modo simulado (Sin Firebase activo)";
+        // CALCULO DE PROGRESO DE COOPERACIÓN DEL CANVAS (Requiere aportación de cada integrante)
+        // Regla: 1 posit por cada integrante activo en cada uno de los 8 bloques
+        window.calculateRoomProgress = function(roomFilterId) {
+            const roomNotes = state.notes.filter(n => n.roomId === roomFilterId);
+            const roomCollabs = state.presence.filter(p => p.roomId === roomFilterId);
             
-            // Salas preestablecidas
-            state.rooms = [
-                { id: 'room-alpha', name: 'Equipo Alpha', createdAt: Date.now(), archived: false, tagText: 'Agora', tagColor: 'purple', ideaTitle: 'EcoFilamento Escolar' },
-                { id: 'room-beta', name: 'Equipo Beta', createdAt: Date.now() - 3600000, archived: false, tagText: 'WonkUp', tagColor: 'blue', ideaTitle: 'AeroFiltro Bio' },
-                { id: 'room-gamma', name: 'Equipo Gamma', createdAt: Date.now() - 7200000, archived: false, tagText: 'Colegio', tagColor: 'green', ideaTitle: 'Paneles Inteligentes' },
-                { id: 'room-archived-demo', name: 'Antiguo Proyecto Archivador', createdAt: Date.now() - 86400000, archived: true, tagText: 'Agora', tagColor: 'purple', ideaTitle: 'App Desecho Cero' }
-            ];
+            // Integrantes únicos en línea en esta sala
+            const uniqueCollabIds = [...new Set(roomCollabs.map(p => p.userId))];
+            
+            const blocks = ['gancho', 'timing', 'problema', 'solucion', 'equipo', 'modelo', 'traccion', 'ask'];
+            let completedBlocksCount = 0;
 
-            // Ordenación de salas offline
-            const savedOrderStr = localStorage.getItem('wonkup_rooms_order');
-            if (savedOrderStr) {
-                try {
-                    const savedOrder = JSON.parse(savedOrderStr);
-                    state.rooms.sort((a, b) => {
-                        const idxA = savedOrder.indexOf(a.id);
-                        const idxB = savedOrder.indexOf(b.id);
-                        const posA = idxA !== -1 ? idxA : 9999;
-                        const posB = idxB !== -1 ? idxB : 9999;
-                        return posA - posB;
-                    });
-                } catch (e) {
-                    console.error("Fallo al parsear orden de salas local:", e);
+            blocks.forEach(blockId => {
+                const blockNotes = roomNotes.filter(n => n.blockId === blockId);
+                const creators = [...new Set(blockNotes.map(n => n.creatorId).filter(Boolean))];
+
+                // Si hay colaboradores activos, requerimos que TODOS ellos hayan aportado en este bloque
+                if (uniqueCollabIds.length > 0) {
+                    const allCollabsParticipated = uniqueCollabIds.every(userId => creators.includes(userId));
+                    if (allCollabsParticipated && blockNotes.length >= uniqueCollabIds.length) {
+                        completedBlocksCount++;
+                    }
+                } else {
+                    // Fallback si no hay presencia (modo offline o sin participantes cargados): al menos 1 post-it para sumar
+                    if (creators.length >= 1) {
+                        completedBlocksCount++;
+                    }
                 }
-            }
+            });
 
-            // Notas preestablecidas
-            state.notes = [
-                { id: 'note-1', text: '¿Sabías que el 80% del plástico que botan las escuelas puede convertirse en filamento 3D?', color: 'bg-yellow-200', blockId: 'gancho', roomId: 'room-alpha' },
-                { id: 'note-2', text: 'El auge de la impresión 3D educativa y las nuevas normas de reciclaje escolar en el 2026.', color: 'bg-yellow-200', blockId: 'timing', roomId: 'room-alpha' },
-                { id: 'note-3', text: 'Trituradora escolar EcoFilamento: interactiva y segura para niños.', color: 'bg-blue-200', blockId: 'solucion', roomId: 'room-alpha' }
-            ];
+            return {
+                completedCount: completedBlocksCount,
+                progressPct: Math.round((completedBlocksCount / 8) * 100),
+                activeCollabsCount: uniqueCollabIds.length
+            };
+        };
+
+        function updateCanvasGamificationProgress() {
+            if (!roomId) return;
+            const stats = window.calculateRoomProgress(roomId);
+
+            document.getElementById('canvas-progress-text').innerText = `Progreso: ${stats.progressPct}% (${stats.completedCount} de 8 bloques completos por tu equipo)`;
+            document.getElementById('canvas-progress-bar').style.width = `${stats.progressPct}%`;
+            document.getElementById('canvas-progress-badge').innerText = `${stats.progressPct}%`;
             
-            state.presence = [
-                { userId: myUserId, userName: myName || 'Tú', roomId: 'room-alpha', lastActive: Date.now() },
-                { userId: 'mock-1', userName: 'Diana', roomId: 'room-alpha', lastActive: Date.now() },
-                { userId: 'mock-2', userName: 'Andrés', roomId: 'room-beta', lastActive: Date.now() }
-            ];
-
-            // Histórico de sesiones preestablecido para demostración de reportes
-            state.sessions = [
-                { id: 'sess_mock1', roomId: 'room-alpha', userName: 'Diana', loginTime: Date.now() - 3600000, lastActive: Date.now() - 1200000, activeDuration: "00:40:00", exitTime: Date.now() - 1200000, status: 'completado' },
-                { id: 'sess_mock2', roomId: 'room-alpha', userName: 'Andrés', loginTime: Date.now() - 1800000, lastActive: Date.now(), activeDuration: "00:30:00", exitTime: null, status: 'activo' },
-                { id: 'sess_mock3', roomId: 'room-beta', userName: 'Sofía', loginTime: Date.now() - 7200000, lastActive: Date.now() - 5400000, activeDuration: "00:30:00", exitTime: Date.now() - 5400000, status: 'completado' }
-            ];
-
-            renderRooms();
+            if (stats.progressPct === 100) {
+                document.getElementById('canvas-progress-badge').className = "text-xs bg-emerald-500 text-white font-black px-3 py-1.5 rounded-xl animate-bounce shrink-0";
+                document.getElementById('canvas-progress-badge').innerText = "🏆 ¡ÉXITO LUNAR!";
+            } else {
+                document.getElementById('canvas-progress-badge').className = "text-xs bg-[#f1c22d] text-slate-950 font-black px-3 py-1.5 rounded-xl animate-pulse shrink-0";
+            }
         }
 
         // ACCIONES DE CREAR, EDITAR Y ACTUALIZAR NOTAS COLABORATIVAS
@@ -1324,7 +1549,15 @@
                 if (noteId) {
                     await setDoc(doc(notesColRef, noteId), { text, color, blockId, roomId, updatedAt: Date.now() }, { merge: true });
                 } else {
-                    await addDoc(notesColRef, { text, color, blockId, roomId, createdAt: Date.now(), creatorId: myUserId });
+                    await addDoc(notesColRef, { 
+                        text, 
+                        color, 
+                        blockId, 
+                        roomId, 
+                        createdAt: Date.now(), 
+                        creatorId: myUserId,
+                        creatorName: myName || 'Anónimo'
+                    });
                 }
             } else {
                 if (noteId) {
@@ -1340,10 +1573,13 @@
                         text,
                         color,
                         blockId,
-                        roomId
+                        roomId,
+                        creatorId: myUserId,
+                        creatorName: myName || 'Anónimo'
                     });
                 }
                 renderNotes();
+                updateCanvasGamificationProgress();
             }
         };
 
@@ -1354,6 +1590,7 @@
             } else {
                 state.notes = state.notes.filter(n => n.id !== noteId);
                 renderNotes();
+                updateCanvasGamificationProgress();
             }
         };
 
@@ -1367,6 +1604,7 @@
                     note.blockId = targetBlockId;
                 }
                 renderNotes();
+                updateCanvasGamificationProgress();
             }
         };
 
@@ -1445,6 +1683,63 @@
             roomTagInput.value = '';
             roomTagColorSelect.value = 'blue';
             showMsg("¡Sala Creada con Éxito!", `La sala de "${name}" ha sido creada exitosamente y ya está disponible en el Lobby para que todos los integrantes puedan entrar cuando lo deseen.`);
+        };
+
+        // GESTIÓN DEL MODAL DE SELECCIÓN DE COMPETIDORES PARA LA CARRERA
+        window.openCompetitionSetupModal = function() {
+            const listContainer = document.getElementById('competition-rooms-list');
+            listContainer.innerHTML = '';
+
+            const activeRooms = state.rooms.filter(r => !r.archived);
+
+            if (activeRooms.length === 0) {
+                listContainer.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">No tienes salas activas registradas para seleccionar.</p>`;
+                openModal('competition-setup-modal');
+                return;
+            }
+
+            activeRooms.forEach(room => {
+                const isChecked = state.competingRoomIds.includes(room.id);
+                
+                const item = document.createElement('label');
+                item.className = "flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors";
+                
+                item.innerHTML = `
+                    <div class="flex flex-col text-left">
+                        <span class="text-sm font-bold text-slate-800">${room.name}</span>
+                        <span class="text-[10px] text-slate-400 mt-0.5">ID: ${room.id}</span>
+                    </div>
+                    <input type="checkbox" name="competing-rooms-checkbox" value="${room.id}" ${isChecked ? 'checked' : ''} class="w-4.5 h-4.5 text-[#50a8f3] focus:ring-[#50a8f3] border-slate-200 rounded-lg">
+                `;
+                listContainer.appendChild(item);
+            });
+
+            openModal('competition-setup-modal');
+        };
+
+        window.saveCompetitionSetup = async function() {
+            const checkedCheckboxes = document.querySelectorAll('input[name="competing-rooms-checkbox"]:checked');
+            const selectedRoomIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+
+            if (selectedRoomIds.length > 6) {
+                showMsg("Límite excedido", "Para asegurar que la pantalla sea legible, solo puedes seleccionar un máximo de 6 equipos a competir al mismo tiempo.");
+                return;
+            }
+
+            if (useFirebase) {
+                const competitionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'competition', 'active_teams');
+                await setDoc(competitionDocRef, {
+                    roomIds: selectedRoomIds,
+                    updatedAt: Date.now()
+                });
+            } else {
+                state.competingRoomIds = selectedRoomIds;
+                localStorage.setItem('wonkup_competing_room_ids', JSON.stringify(selectedRoomIds));
+                renderSpaceRace();
+            }
+
+            closeModal('competition-setup-modal');
+            showMsg("Carrera Sincronizada", `Se ha configurado la pista para mostrar la competencia de los ${selectedRoomIds.length} equipos seleccionados en tiempo real.`);
         };
 
         // EDITAR / RENOMBRAR NOMBRE DE LA SALA / TEAM Y SUS ETIQUETAS
@@ -1752,6 +2047,99 @@
             renderRooms();
         };
 
+        // GESTIÓN DE VISUALIZACIÓN DE LA CARRERA LUNAR (LOBBY)
+        window.toggleSpaceRaceDisplay = function() {
+            const container = document.getElementById('space-race-track-container');
+            const textSpan = document.getElementById('spacerace-toggle-btn-text');
+            const isHidden = container.classList.contains('hidden');
+
+            if (isHidden) {
+                container.classList.remove('hidden');
+                textSpan.innerText = "Ocultar Carrera";
+                renderSpaceRace();
+            } else {
+                container.classList.add('hidden');
+                textSpan.innerText = "Ver Carrera Completa";
+            }
+        };
+
+        // RENDERIZADO VISUAL DEL SPACE RACE EN TIEMPO REAL (Filtro por competidores elegidos)
+        function renderSpaceRace() {
+            const laneContainer = document.getElementById('space-race-lanes');
+            if (!laneContainer || document.getElementById('space-race-track-container').classList.contains('hidden')) return;
+
+            laneContainer.innerHTML = '';
+
+            // Solo compiten las salas activas (no archivadas)
+            let activeRooms = state.rooms.filter(r => !r.archived);
+
+            // Filtrar únicamente los IDs elegidos por el administrador
+            if (state.competingRoomIds && state.competingRoomIds.length > 0) {
+                activeRooms = activeRooms.filter(r => state.competingRoomIds.includes(r.id));
+            } else {
+                // Fallback amigable: si no hay competidores seleccionados manualmente, mostramos los primeros 4 por defecto
+                activeRooms = activeRooms.slice(0, 4);
+            }
+
+            if (activeRooms.length === 0) {
+                laneContainer.innerHTML = `<div class="text-center text-xs text-slate-400 font-bold py-8 italic w-full">Elige equipos haciendo clic en "Seleccionar Competidores" para iniciar la carrera lunar.</div>`;
+                return;
+            }
+
+            activeRooms.forEach(room => {
+                const stats = window.calculateRoomProgress(room.id);
+                const progressPct = stats.progressPct;
+
+                // Convertimos el porcentaje en una posición flexible restando espacio de meta
+                const leftOffset = Math.max(2, Math.min(98, progressPct));
+
+                const lane = document.createElement('div');
+                lane.className = "relative h-12 w-full flex items-center border-b border-blue-900/10 last:border-b-0";
+
+                lane.innerHTML = `
+                    <!-- Nombre del Equipo e Info (Flota encima del cohete) -->
+                    <div class="absolute -top-3.5 z-20 flex items-center gap-1.5 transition-all duration-500 ease-out" style="left: calc(${leftOffset}% - 20px)">
+                        <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest bg-[#060c1d] border border-blue-900/50 px-2 py-0.5 rounded-md leading-none truncate max-w-[80px]" title="${room.name}">
+                            ${room.name}
+                        </span>
+                        <span class="text-[9px] font-black text-[#f1c22d] bg-[#060c1d] border border-blue-900/50 px-1 rounded-md leading-none">${progressPct}%</span>
+                    </div>
+
+                    <!-- Cohete de Wonki Pilotando (Rediseño de Alta Fidelidad SVG) -->
+                    <div class="absolute transition-all duration-500 ease-out z-10" style="left: calc(${leftOffset}% - 24px)">
+                        <div class="flex items-center gap-1">
+                            <!-- Fuego de propulsión -->
+                            <div class="rocket-fire w-4 h-1.5 bg-gradient-to-r from-red-500 to-amber-500 rounded-full shrink-0 mr-1 filter drop-shadow-[0_0_3px_#ef4444]" style="transform-origin: right center;"></div>
+                            
+                            <!-- Cohete Wonki Astronauta (Rediseño conforme a las imágenes cargadas por el usuario) -->
+                            <div class="relative w-11 h-11 shrink-0 filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+                                <svg viewBox="0 0 100 100" class="w-full h-full transform rotate-90">
+                                    <!-- Cuerpo Cohete -->
+                                    <path d="M 50,10 C 65,35 65,75 50,90 C 35,75 35,35 50,10 Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+                                    <!-- Aletas laterales -->
+                                    <path d="M 35,65 Q 15,80 25,90 Z" fill="#3b82f6"/>
+                                    <path d="M 65,65 Q 85,80 75,90 Z" fill="#3b82f6"/>
+                                    <!-- Punta del cohete -->
+                                    <path d="M 50,10 C 57,22 43,22 50,10 Z" fill="#f1c22d"/>
+                                    <!-- Escotilla del visor de casco del cohete -->
+                                    <circle cx="50" cy="46" r="14" fill="#0b1329" stroke="#1e293b" stroke-width="2"/>
+                                    <path d="M 39,42 Q 50,31 61,42 Q 50,35 39,42" fill="#ffffff" opacity="0.15"/>
+                                    
+                                    <!-- Wonki Astronauta adentro del visor -->
+                                    <ellipse cx="50" cy="48" rx="9" ry="7" fill="#d97706"/> <!-- Cara simio -->
+                                    <!-- Ojos celestes resplandecientes -->
+                                    <ellipse cx="46.5" cy="47" rx="2.5" ry="4" fill="#38bdf8"/>
+                                    <ellipse cx="53.5" cy="47" rx="2.5" ry="4" fill="#38bdf8"/>
+                                    <path d="M 47,52 Q 50,54 53,52" fill="none" stroke="#000" stroke-width="1" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                laneContainer.appendChild(lane);
+            });
+        }
+
         // MANEJADORES DE DRAG AND DROP PARA LAS TARJETAS DE SALAS
         window.handleRoomDragStart = function(ev, roomId) {
             ev.dataTransfer.setData("text/plain", roomId);
@@ -1863,8 +2251,10 @@
             filteredRooms.sort((a, b) => {
                 const roomANotesCount = state.notes.filter(n => n.roomId === a.id).length;
                 const roomBNotesCount = state.notes.filter(n => n.roomId === b.id).length;
-                const roomAActiveCollabs = state.presence.filter(p => p.roomId === a.id).length;
-                const roomBActiveCollabs = state.presence.filter(p => p.roomId === b.id).length;
+                const statsA = window.calculateRoomProgress(a.id);
+                const statsB = window.calculateRoomProgress(b.id);
+                const roomAActiveCollabs = statsA.activeCollabsCount;
+                const roomBActiveCollabs = statsB.activeCollabsCount;
 
                 switch(state.sortOption) {
                     case 'date-desc':
@@ -1920,6 +2310,10 @@
                 // Filtrar notas y presencia en memoria (Regla 2)
                 const roomNotesCount = state.notes.filter(n => n.roomId === room.id).length;
                 const roomActiveCollabs = state.presence.filter(p => p.roomId === room.id);
+
+                // Calcular progreso lunar individual aplicando la regla cooperativa estricta
+                const stats = window.calculateRoomProgress(room.id);
+                const progressPct = stats.progressPct;
 
                 // Mapear nombres de integrantes en línea de la sala
                 const activeNamesHtml = roomActiveCollabs.length > 0
@@ -2024,6 +2418,17 @@
                         
                         <!-- MOSTRAR LA IDEA DEL TEAM -->
                         ${ideaHtml}
+
+                        <!-- BARRA DE PROGRESO DE LA CONQUISTA LUNAR (COOPERATIVA) -->
+                        <div class="mt-3.5 bg-slate-950/60 border border-blue-950/30 p-2.5 rounded-xl">
+                            <div class="flex justify-between text-[9px] font-extrabold text-slate-400 mb-1">
+                                <span>CONQUISTA LUNAR</span>
+                                <span class="text-[#f1c22d]">${progressPct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5">
+                                <div class="h-full bg-gradient-to-r from-[#50a8f3] to-[#f1c22d] rounded-full" style="width: ${progressPct}%"></div>
+                            </div>
+                        </div>
 
                         <p class="text-[10px] text-slate-500 mt-2">ID: ${room.id}</p>
                         
@@ -2204,6 +2609,15 @@
 
             if (!hash || hash === 'lobby' || hash === '') {
                 // VISTA DEL LOBBY
+                if (window.currentRoomSessionId) {
+                    window.writeSessionActivity(window.currentRoomSessionId, 'exit');
+                    window.currentRoomSessionId = null;
+                }
+                if (window.currentSessionInterval) {
+                    clearInterval(window.currentSessionInterval);
+                    window.currentSessionInterval = null;
+                }
+
                 roomId = null;
                 lobbyView.classList.remove('hidden');
                 canvasView.classList.add('hidden');
